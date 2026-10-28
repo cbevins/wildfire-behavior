@@ -1,4 +1,4 @@
-// echo "# wildfire-behavior" >> README.md
+// THIS IS NOT YET FULLY TESTED!!
 
 import fs from 'fs';
 import path from 'path';
@@ -16,8 +16,8 @@ const targetDir = process.cwd()
 const opts =  { cwd: targetDir, stdio: 'ignore' }
 const cmds = [
     'git init',
-    'git add README.md',
-    'git commit',
+    'git add .',
+    'git commit -m "initial commit"',
     'git branch -M main',
     `git remote add origin ${repo}`,
     'git push -u origin main'
@@ -26,7 +26,7 @@ try {
     console.log('📦  initializing git repository...');
     for(let cmd of cmds) {
         console.log(cmd, '...');
-        execSync(cmd, opts);
+        // execSync(cmd, opts);
     }
     console.log(`\n✅ Successfully created ${projectName} git repository link!`);
 } catch (error) {
