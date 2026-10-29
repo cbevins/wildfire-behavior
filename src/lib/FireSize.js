@@ -99,6 +99,7 @@ export class FireSize {
         const centerE = centerX + ignEast - ignX
         const centerN = centerY + ignNorth - ignY
 
+        // New properties added by *this* FireSize
         this.headingSpreadRate = fireEllipse.headingSpreadRate
         this.lengthWidthRatio = fireEllipse.lengthWidthRatio
         this.flameLength = fireEllipse.flameLength
@@ -121,6 +122,7 @@ export class FireSize {
         this.rotationCosInv = fireEllipse.rotationCosInv
         this.rotationSinInv = fireEllipse.rotationSinInv
 
+        // Clone properties from the source FireShape
         this.headingDistance = headingDistance
         this.backingDistance = backingDistance
         this.elapsedTime = elapsedTime

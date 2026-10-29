@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * While the FireBehavior class produces fire spread rate and intensity in the direction
  * of maximum spread, the FireShape class expands fire behavior to two dimensions

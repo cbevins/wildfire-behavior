@@ -13,8 +13,10 @@
 		"prepack": "svelte-kit sync && svelte-package && publint",
 		"lint": "prettier --check . && eslint .",
 		"format": "prettier --write .",
-		"test:unit": "vitest",
-		"test": "npm run test:unit -- --run"
+		"testonce:unit": "vitest",
+		"testonce": "npm run testonce:unit -- --run",
+		"test": "vitest",
+		"test:run": "vitest run"
 	},
 	"publishConfig": {
 		"registry": "http://localhost:4873/"

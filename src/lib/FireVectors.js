@@ -22,9 +22,8 @@ export class FireVector {
         this.scorchHeight = 0
         return this
     }
-    getScorchHeight(windSpeed, airTemp) { 
-        this.scorchHeight = (this.firelineIntensity <= 0) ? 0 :
-            getScorchHeight(this.firelineIntensity, airTemp, windSpeed/88)
+    getScorchHeight(airF, midflameFpm) { 
+        this.scorchHeight = getScorchHeight(this.firelineIntensity, airF, midflameFpm)
         return this.scorchHeight
     }
 }
@@ -42,7 +41,7 @@ export class FireVectorBeta extends FireVector {
     update(fireSize, betaFromHead=0) {
         this.init()
 
-        // Get required fireSize (and fireEllipse) input properties
+        // Get required fireSize (and fireShape) input properties
         let {bearing, eccentricity:e, headingSpreadRate, firelineIntensity, rotationDeg,
             elapsedTime, ignX, ignY, ignEast, ignNorth,} = fireSize
 
@@ -96,6 +95,29 @@ export class FireVectorBeta6 extends FireVectorBeta {
     }
 }
 
+// Returns a FireVectorBeta where the angle from the ignition point intersects the left flank
+export class FireVectorBetaAtLeftFlank extends FireVectorBeta {
+    constructor(optionsObj={calcFlameLength:true}) {
+        super(optionsObj)
+    }
+    update(fireSize) {
+        // This gets the position using beta
+        const betaFromHead = calcBetaFromTheta(fireSize, 270)
+        return super.update(fireSize, betaFromHead)
+    }
+}
+
+// Returns a FireVectorBeta where the angle from the ignition point intersects the right flank
+export class FireVectorBetaAtRightFlank extends FireVectorBeta {
+    constructor(optionsObj={calcFlameLength:true}) {
+        super(optionsObj)
+    }
+    update(fireSize) {
+        const betaFromHead = calcBetaFromTheta(fireSize, 90)
+        return super.update(fireSize, betaFromHead)
+    }
+}
+
 export class FireVectorPsi extends FireVector {
     constructor(optionsObj={calcFlameLength:true}) {
         super(optionsObj)
@@ -145,26 +167,6 @@ export class FireVectorHead extends FireVectorBeta {
     }
     update(fireSize) {
         return super.update(fireSize, 0)
-    }
-}
-
-export class FireVectorLeftFlank extends FireVectorBeta {
-    constructor(optionsObj={calcFlameLength:true}) {
-        super(optionsObj)
-    }
-    update(fireSize) {
-        const betaFromHead = calcBetaFromTheta(fireSize, 270)
-        return super.update(fireSize, betaFromHead)
-    }
-}
-
-export class FireVectorRightFlank extends FireVectorBeta {
-    constructor(optionsObj={calcFlameLength:true}) {
-        super(optionsObj)
-    }
-    update(fireSize) {
-        const betaFromHead = calcBetaFromTheta(fireSize, 90)
-        return super.update(fireSize, betaFromHead)
     }
 }
 

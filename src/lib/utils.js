@@ -1,3 +1,4 @@
+// @ts-nocheck
 
 // 'bearing' is always degrees clockwise from north
 // 'vectorBearing' is degrees clockwise from fire head
@@ -44,13 +45,12 @@ export function getFlameLength(fli) {
 
 // Calculates the scorch height (ft) estimated from
 // fli =  Byram's fireline intensity (BTU/ft/s),
-// airTemp = air temperature (oF)
-// midflameWindSpeed = midflame wind speed (mi/h)
-export function getScorchHeight(fli, airTemp=77, midflameWindSpeed=0) {
-    const mph = midflameWindSpeed / 88
-    return (fli> 0) ?
-        ((63 / (140 - airTemp)) * fli**1.166667) /
-        Math.sqrt(fli + mph * mph * mph) : 0
+// airF = air temperature (oF)
+// midflameFpm = midflame wind speed (ft/min)
+export function getScorchHeight(fli, airF=77, midflameFpm=0) {
+    const mph = midflameFpm / 88
+    return (fli <= 0) ? 0
+        : ((63 / (140 - airF)) * fli**(1.166667) / Math.sqrt(fli + mph * mph * mph))
 }
 
 export function positive(value) {

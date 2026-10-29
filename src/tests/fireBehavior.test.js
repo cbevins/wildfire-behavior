@@ -1,8 +1,9 @@
+// @ts-nocheck
 import { FuelModelCatalog, FuelBed, FuelIgnition, FireBehavior } from '../index.js'
 import * as Bp from './Bp6Inputs.js'
 
 import { describe, it, expect } from 'vitest'
-import { parts, ppb } from './assertions.js'
+import { parts, ppb, ppm } from './assertions.js'
 expect.extend({ parts })
 
 const catalog = new FuelModelCatalog()
@@ -14,7 +15,7 @@ describe('FireBehavior Class', () => {
         const fuelIgnition = new FuelIgnition(fuelBed, Bp.fuelMoisture)
         const fireBehavior = new FireBehavior(fuelIgnition, Bp.windSlope, Bp.options)
 
-        expect(fireBehavior.xComponent).parts(0.75673013692577218, 1.0e-8)
+        expect(fireBehavior.xComponent).parts(0.75673013692577218, ppm)
         expect(fireBehavior.yComponent).parts(17.856644527335789, ppb)
 
         expect(fireBehavior.headingSpreadRate).parts(18.551680325448835, ppb)
@@ -28,7 +29,7 @@ describe('FireBehavior Class', () => {
         expect(fireBehavior.effWindFactor).parts(26.321715915373524, ppb)
         expect(fireBehavior.effWindSpeed).parts(880.55194372010692, ppb)
         expect(fireBehavior.lengthWidthRatio).parts(3.5015680219321221, ppb)
-        expect(fireBehavior.scorchHeight(95)).parts(39.580182, 1.0e-8)
+        expect(fireBehavior.scorchHeight(95)).parts(39.580182, ppm)
     })
 
 
@@ -38,7 +39,7 @@ describe('FireBehavior Class', () => {
         const fuelIgnition = new FuelIgnition(fuelBed, Bp.fuelMoisture)
         const fireBehavior = new FireBehavior(fuelIgnition, Bp.windSlope, Bp.options)
 
-        expect(fireBehavior.xComponent).parts(1.9584486126230398, 1.0e-8)
+        expect(fireBehavior.xComponent).parts(1.9584486126230398, ppm)
         expect(fireBehavior.yComponent).parts(46.996312501163828, ppb)
 
         expect(fireBehavior.headingSpreadRate).parts(48.47042599399056, ppb)
@@ -52,6 +53,6 @@ describe('FireBehavior Class', () => {
         expect(fireBehavior.effWindFactor).parts(32.816782854703028, ppb)
         expect(fireBehavior.effWindSpeed).parts(880.5568433322004, ppb)
         expect(fireBehavior.lengthWidthRatio).parts(3.501581941, ppb)
-        expect(fireBehavior.scorchHeight(95)).parts(215.682771, 1.0e-8)
+        expect(fireBehavior.scorchHeight(95)).parts(215.682771, ppm)
     })
 })

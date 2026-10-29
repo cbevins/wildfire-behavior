@@ -1,8 +1,9 @@
+// @ts-nocheck
 import { FuelModelCatalog, FuelBed, FuelIgnition, FireBehavior, FireShape, FireSize } from '../index.js'
 import { FireVectorBack, FireVectorBeta, FireVectorBeta6, FireVectorHead,
-    FireVectorLeftFlank, FireVectorPsi, FireVectorRightFlank } from '../index.js'
+    FireVectorPsi } from '../index.js'
 import * as Bp from './Bp6Inputs.js'
-import { getScorchHeight} from '../lib/utils.js'
+import { getScorchHeight } from '../lib/utils.js'
     
 import { describe, it, expect } from 'vitest'
 import { parts, ppm } from './assertions.js'
@@ -15,7 +16,7 @@ const catalog = new FuelModelCatalog()
 //------------------------------------------------------------------------------
 let elapsed = Bp.firePosition.elapsedTime
 const airTemp = 95
-const midflame = 880
+const midflameFpm = 880
 
 // const headingFromNorth = [87.573367385837855, 87.613728665173383]
 // console.log('betaFromhead', beta5FromHead) prints: [ 317.42663261416214, 317.38627133482663 ]
@@ -28,23 +29,17 @@ const psiFromHead   = [360 - 42.573367385837855, 360 - 42.613728665173383]
 // const beta6FromUpslope = [45, 45]
 // const psiFromUpslope   = [45, 45]
 
-function scorchHeight(fli, airTemp=77, midflameWindSpeed=0) {
-    const mph = midflameWindSpeed / 88
-    return (fli > 0) ? ((63 / (140 - airTemp)) * fli**1.166667) /
-        Math.sqrt(fli + mph * mph * mph) : 0
-}
-
 // beta.fli = head.fli * beta5.ros / head.ros
 const beta5fli010 = (389.95413667947145 * 2.6256648650882601) / 18.551680325448835
 // console.log('beta5fli010', beta5fli010) prints: 55.191166391033725
 const beta5fl010 = 0.45 * Math.pow(beta5fli010, 0.46)
-const beta5scht010 = scorchHeight(beta5fli010, airTemp, midflame)
+const beta5scht010 = getScorchHeight(beta5fli010, airTemp, midflameFpm)
 
 // beta.fli = head.fli * beta5.ros / head.ros 
 const beta5fli124 = (2467.9286450361865 * 6.8494531181657319) / 48.47042599399056
 // console.log('beta5fli124', beta5fli124) prints: 348.7479469491235
 const beta5fl124 = 0.45 * Math.pow(beta5fli124, 0.46)
-const beta5scht124 = scorchHeight(beta5fli124, airTemp, midflame)
+const beta5scht124 = getScorchHeight(beta5fli124, airTemp, midflameFpm)
 
 //------------------------------------------------------------------------------
 // BehavePlus 5 and V6-beta values
@@ -93,10 +88,6 @@ const bpFireSize = {
     psiScorch: [29.307635864149884, 169.80644998818718],
 }
 
-const fli = 389.95413667947145
-console.log('Utils.getScorchHeight()', getScorchHeight(fli, airTemp, midflame), fli, airTemp, midflame)
-console.log('Local scorchHeight()', scorchHeight(fli, airTemp, midflame), fli, airTemp, midflame)
-
 describe('FireVector Classes', () => {
     it(`Fuel Model 10 and 124 FireEllipse properties match BehavePlus v5 and v6 beta:`, () => {
         const head = new FireVectorHead()
@@ -104,7 +95,6 @@ describe('FireVector Classes', () => {
         const beta5 = new FireVectorBeta()
         const beta6 = new FireVectorBeta6()
         const psi = new FireVectorPsi()
-        const left = new FireVectorLeftFlank()
 
         const fuel = [10, 124]
         for(let idx=0; idx<=1; idx++) {
@@ -120,23 +110,21 @@ describe('FireVector Classes', () => {
             expect(head.distance).parts(bpFireSize.headDist[idx])
             expect(head.firelineIntensity).parts(bpFireSize.headFli[idx])
             expect(head.flameLength).parts(bpFireSize.headFlame[idx])
-            // expect(head.getScorchHeight(midflame, airTemp)).parts(bpFireSize.headScorch[idx])
-            console.log('FireVector.getScorchHeight()', head.getScorchHeight(midflame, airTemp),
-                head.firelineIntensity, airTemp, midflame)
+            expect(head.getScorchHeight(airTemp, midflameFpm)).parts(bpFireSize.headScorch[idx])
 
             back.update(fireSize, true)
             expect(back.spreadRate).parts(bpFireSize.backRos[idx])
             expect(back.distance).parts(bpFireSize.backDist[idx])
             expect(back.firelineIntensity).parts(bpFireSize.backFli[idx])
             expect(back.flameLength).parts(bpFireSize.backFlame[idx])
-            // expect(back.getScorchHeight(midflame, airTemp)).parts(bpFireSize.backScorch[idx])
+            expect(back.getScorchHeight(airTemp, midflameFpm)).parts(bpFireSize.backScorch[idx])
 
             beta5.update(fireSize, betaFromHead[idx])
             expect(beta5.spreadRate).parts(bpFireSize.beta5Ros[idx])
             expect(beta5.distance).parts(bpFireSize.beta5Dist[idx])
             expect(beta5.firelineIntensity).parts(bpFireSize.beta5Fli[idx])
             expect(beta5.flameLength).parts(bpFireSize.beta5Flame[idx])
-            // expect(beta5.scorchHeight).parts(bpFireSize.beta5Scorch[idx])
+            expect(beta5.getScorchHeight(airTemp, midflameFpm)).parts(bpFireSize.beta5Scorch[idx])
 
             beta6.update(fireSize, betaFromHead[idx])
             expect(beta6.spreadRate).parts(bpFireSize.beta6Ros[idx])
@@ -145,17 +133,19 @@ describe('FireVector Classes', () => {
             expect(beta6.psi).parts(bpFireSize.beta6Psi[idx])
             expect(beta6.firelineIntensity).parts(bpFireSize.beta6Fli[idx], ppm)
             expect(beta6.flameLength).parts(bpFireSize.beta6Flame[idx])
-            // expect(beta6.scorchHeight).parts(bpFireSize.beta6Scorch[idx], ppm)
+            expect(beta6.getScorchHeight(airTemp, midflameFpm)).parts(bpFireSize.beta6Scorch[idx], ppm)
 
             psi.update(fireSize, psiFromHead[idx])
             expect(psi.spreadRate).parts(bpFireSize.psiRos[idx])
             expect(psi.distance).parts(bpFireSize.psiDist[idx])
             expect(psi.firelineIntensity).parts(bpFireSize.psiFli[idx])
             expect(psi.flameLength).parts(bpFireSize.psiFlame[idx])
-            // expect(psi.scorchHeight).parts(bpFireSize.psiScorch[idx])
+            expect(psi.getScorchHeight(airTemp, midflameFpm)).parts(bpFireSize.psiScorch[idx])
+
+            // expect(right.distance).parts(bpFireSize.flankDist[idx])
 
             // Flanking is an *expansion rate* from the ellipse center,
-            // and NOT a spread rate from the ignition point!
+            // and *NOT* a *fire spread rate* as the fire didn't start at the center except for no-wind, no-slope cases.
             // Therefore, fireline intensity and flame length must use beta or phi
             // let theta = new ThetaVector(fireEllipse, 90)
             // expect(theta.spreadRate).parts(bpFireSize.flankRos[idx])

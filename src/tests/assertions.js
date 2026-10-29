@@ -1,3 +1,4 @@
+// @ts-nocheck
 export const ppb = 1.0e-9  // parts per billion
 export const ppm = 1.0e-6  // parts per million
 export const ppt = 1.0e-3  // parts per thousand
