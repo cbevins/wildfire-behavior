@@ -54,34 +54,34 @@ export class FireSize {
         this.centerE = 0
         this.centerN = 0
     }
-    update(fireEllipse, firePosition) {
+    update(fireShape, firePosition) {
         this.init()
         // Get required inputs
         let {elapsedTime=1, ignEast=0, ignNorth=0, ignX=0, ignY=0} = firePosition
 
         // Distance (ft) between the *ignition point* and the fire ellipse head
-        const headingDistance = fireEllipse.headingSpreadRate * elapsedTime
+        const headingDistance = fireShape.headingSpreadRate * elapsedTime
         
         // Distance (ft) between the *ignition point* and the fire ellipse back
-        const backingDistance = fireEllipse.backingSpreadRate * elapsedTime
+        const backingDistance = fireShape.backingSpreadRate * elapsedTime
 
         // Major semi-axis length (ft) [aka 'rx']
-        const fDistance = fireEllipse.fSpreadRate * elapsedTime
+        const fDistance = fireShape.fSpreadRate * elapsedTime
 
         // Distance (ft) between ignition and center points
-        const gDistance = fireEllipse.gSpreadRate * elapsedTime
+        const gDistance = fireShape.gSpreadRate * elapsedTime
 
         // Minor semi-axis length (ft) [aka 'ry']
-        const hDistance = fireEllipse.hSpreadRate * elapsedTime
+        const hDistance = fireShape.hSpreadRate * elapsedTime
 
         // Latus rectum semi-chord length (ft)
-        const latusRectumDistance = fireEllipse.latusRectumSpreadRate * elapsedTime
+        const latusRectumDistance = fireShape.latusRectumSpreadRate * elapsedTime
 
         // Total ellipse length (ft)
-        const length = fireEllipse.majorExpansionRate * elapsedTime
+        const length = fireShape.majorExpansionRate * elapsedTime
 
         // Total ellipse width (ft)
-        const width = fireEllipse.minorExpansionRate * elapsedTime
+        const width = fireShape.minorExpansionRate * elapsedTime
         
         // Ellipse area (ft2)
         const area = (Math.PI * length * width) / 4
@@ -94,33 +94,33 @@ export class FireSize {
 
         // Since getBetaFireVector() cannot be used to determine the center point position,
         // we have to do it hgere manually
-        const centerX = ignX + gDistance * fireEllipse.rotationCos
-        const centerY = ignY + gDistance * fireEllipse.rotationSin
+        const centerX = ignX + gDistance * fireShape.rotationCos
+        const centerY = ignY + gDistance * fireShape.rotationSin
         const centerE = centerX + ignEast - ignX
         const centerN = centerY + ignNorth - ignY
 
         // New properties added by *this* FireSize
-        this.headingSpreadRate = fireEllipse.headingSpreadRate
-        this.lengthWidthRatio = fireEllipse.lengthWidthRatio
-        this.flameLength = fireEllipse.flameLength
-        this.bearing = fireEllipse.bearing
-        this.eccentricity = fireEllipse.eccentricity
-        this.backingSpreadRate = fireEllipse.backingSpreadRate
-        this.majorExpansionRate = fireEllipse.majorExpansionRate
-        this.minorExpansionRate = fireEllipse.minorExpansionRate
-        this.fSpreadRate = fireEllipse.fSpreadRate
-        this.hSpreadRate = fireEllipse.hSpreadRate
-        this.gSpreadRate = fireEllipse.gSpreadRate
-        this.latusRectumSpreadRate = fireEllipse.latusRectumSpreadRate
-        this.effectiveWindSpeed = fireEllipse.effectiveWindSpeed
-        this.firelineIntensity = fireEllipse.firelineIntensity
-        this.heatPerUnitArea = fireEllipse.heatPerUnitArea
-        this.rotationDeg = fireEllipse.rotationDeg
-        this.rotationRad = fireEllipse.rotationRad
-        this.rotationCos = fireEllipse.rotationCos
-        this.rotationSin = fireEllipse.rotationSin
-        this.rotationCosInv = fireEllipse.rotationCosInv
-        this.rotationSinInv = fireEllipse.rotationSinInv
+        this.headingSpreadRate = fireShape.headingSpreadRate
+        this.lengthWidthRatio = fireShape.lengthWidthRatio
+        this.flameLength = fireShape.flameLength
+        this.bearing = fireShape.bearing
+        this.eccentricity = fireShape.eccentricity
+        this.backingSpreadRate = fireShape.backingSpreadRate
+        this.majorExpansionRate = fireShape.majorExpansionRate
+        this.minorExpansionRate = fireShape.minorExpansionRate
+        this.fSpreadRate = fireShape.fSpreadRate
+        this.hSpreadRate = fireShape.hSpreadRate
+        this.gSpreadRate = fireShape.gSpreadRate
+        this.latusRectumSpreadRate = fireShape.latusRectumSpreadRate
+        this.effectiveWindSpeed = fireShape.effectiveWindSpeed
+        this.firelineIntensity = fireShape.firelineIntensity
+        this.heatPerUnitArea = fireShape.heatPerUnitArea
+        this.rotationDeg = fireShape.rotationDeg
+        this.rotationRad = fireShape.rotationRad
+        this.rotationCos = fireShape.rotationCos
+        this.rotationSin = fireShape.rotationSin
+        this.rotationCosInv = fireShape.rotationCosInv
+        this.rotationSinInv = fireShape.rotationSinInv
 
         // Clone properties from the source FireShape
         this.headingDistance = headingDistance
