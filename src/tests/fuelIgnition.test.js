@@ -10,8 +10,8 @@ const catalog = new FuelModelCatalog()
 describe('FuelIgnition Class', () => {
     it('Fuel Model 10 FuelIgnition properties match BehavePlus v5 and v6 beta', () => {
         const fuelModel = catalog.get(10)
-        const fuelBed = new FuelBed(fuelModel, Bp.fuelCuring)
-        const fuelIgnition = new FuelIgnition(fuelBed, Bp.fuelMoisture)
+        const fuelBed = new FuelBed({fuelModel, curedHerb: Bp.fuelCuring.curedHerb})
+        const fuelIgnition = new FuelIgnition({fuelBed, ...Bp.fuelMoisture})
 
         expect(fuelIgnition.dead.fineFuelMoisture).parts(0.05389207884883955, ppb)
         expect(fuelIgnition.dead.fineWaterLoad).parts(0.008463731497256665, ppb)
@@ -32,8 +32,8 @@ describe('FuelIgnition Class', () => {
     })
     it('Fuel Model 124 FuelIgnition properties match BehavePlus v5 and v6 beta', () => {
         const fuelModel = catalog.get(124)
-        const fuelBed = new FuelBed(fuelModel, Bp.fuelCuring)
-        const fuelIgnition = new FuelIgnition(fuelBed, Bp.fuelMoisture)
+        const fuelBed = new FuelBed({fuelModel, curedHerb: Bp.fuelCuring.curedHerb})
+        const fuelIgnition = new FuelIgnition({fuelBed, ...Bp.fuelMoisture})
 
         expect(fuelIgnition.dead.fineFuelMoisture).parts(0.050405399380187531, ppb)
         expect(fuelIgnition.dead.fineWaterLoad).parts(0.0098866289779641001, ppb)

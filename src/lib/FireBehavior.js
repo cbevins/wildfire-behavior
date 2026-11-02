@@ -8,18 +8,27 @@ import { getScorchHeight } from './utils.js'
 
 export class FireBehavior {
     /**
-     * @param {FuelIgnition} fuelIgnition Reference to an object created by new FuelIgnition() or has the following props:
-     * {fuelBed, noWindSpreadRate, reactionIntensity} 
-     * @param {object} windSlopeObj Reference to an object with the following properties and defaults:
-     * {midflameWindSpeed=0, windBearing=0, slopeRatio=0, aspect=180}
-     * @param {object} optionsObj Reference to an object with the following properties and defaults:
-     * {limitWindSpeedFactor=true, limitSpreadRateToWindSpeed=true}
+     * @param {object} params An object with at least the following properties:
+     * - [req] fuelIgnition: Reference to an object created by new FuelIgnition(params) or fuelIgnition.update(params)
+     *      or has the following props:
+     *      - fuelBed, reference to a FuelBed instance,
+     *      - noWindSpreadRate, no-wind, no-slope spread rate (ft/min),
+     *      - reactionIntensity reaction intensity
+     * - [opt] midflameWindSpeed=0, wind speed at midflame height (ft/min)
+     * - [opt] windBearing=0, wind heading (compass degrees clockwise from north)
+     * - [opt] slopeRatio=0, slope steepnees ratio of vertical rise over horizontal reach)
+     * - [opt] aspect=180, downslope direction (compass degrees clockwise from north)
+     * - [opt] limitWindSpeedFactor=true,
+     * - [opt] limitSpreadRateToWindSpeed=true
      */
-    constructor(fuelIgnition, windSlopeObj, optionsObj={limitWindSpeedFactor:true, limitSpreadRateToWindSpeed:true}) {
-        this.init()
-        this.update(fuelIgnition, windSlopeObj, optionsObj)
+    constructor(params=null) {
+        if (params)
+            this.update(params)
+        else
+            this.#init()
     }
-    init() {
+
+    #init() {
         // Save whatever is needed for use further downstream
         this.headingSpreadRate = 0
         this.effWindFactor = 0
@@ -48,14 +57,15 @@ export class FireBehavior {
         this.crossSlopeWindSpreadRate = 0
     }
 
-    update(fuelIgnition, windSlopeObj, optionsObj={limitWindSpeedFactor:true, limitSpreadRateToWindSpeed:true}) {
+    update(params) {
+        this.#init()
+
+        // Get required wind and slope parameters and the computation options
+        let {fuelIgnition, midflameWindSpeed=0, windBearing=0, slopeRatio=0, aspect=180,
+            limitWindSpeedFactor=true, limitSpreadRateToWindSpeed=true} = params
+
         // Get required fuelIgnition input properties
         let {fuelBed, noWindSpreadRate, reactionIntensity} = fuelIgnition
-
-        // Get required wind and slope parameters and computation options
-        let {midflameWindSpeed=0, windBearing=0, slopeRatio=0, aspect=180} = windSlopeObj
-
-        let {limitWindSpeedFactor=true, limitSpreadRateToWindSpeed=true} = optionsObj
 
         // Get required fuelBed input properties
         let {slopeK, windB, windI, windK, residenceTime} = fuelBed

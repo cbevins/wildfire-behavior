@@ -14,10 +14,10 @@ describe('ellipseAngles.js functions', () => {
         // Build FireEllipse from direct input parameters for FM 10:
         let fuelKey = 10
         const fuelModel = catalog.get(fuelKey)
-        const fuelBed = new FuelBed(fuelModel, Bp.fuelCuring)
-        const fuelIgnition = new FuelIgnition(fuelBed, Bp.fuelMoisture)
-        const fireBehavior = new FireBehavior(fuelIgnition, Bp.windSlope, Bp.options)
-        const fireShape = new FireShape(fireBehavior)
+        const fuelBed = new FuelBed({fuelModel, curedHerb: Bp.fuelCuring.curedHerb})
+        const fuelIgnition = new FuelIgnition({fuelBed, ...Bp.fuelMoisture})
+        const fireBehavior = new FireBehavior({fuelIgnition, ...Bp.windSlope, ...Bp.options})
+        const fireShape = new FireShape(fireBehavior)   // NOTE: fireBehavior IS an object
         
         expect(fireShape.headingSpreadRate).parts(fireBehavior.headingSpreadRate)
         expect(fireShape.lengthWidthRatio).parts(3.5015680219321221, ppb)

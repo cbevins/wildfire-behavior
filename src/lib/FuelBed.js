@@ -3,12 +3,16 @@ import { fraction } from './utils.js'
 export class FuelBed {
     /**
      * Returns a FuelBed with any curable fuels apportioned to their respective dead and live classes.
-     * @param {FuelModel} fuelModelRef Reference to a FuelModel as returned by FuelModelCatalog::get()
-     * @param {object} fuelCuringObj Reference to an object with cured fraction props, such as {curedHerb: 0.5}
+     * @param {object} params An object with at least the following properties:
+     *  fuelModel: a reference to a FuelModel as returned by FuelModelCatalog::get()
+     *  curedHerb: the cured herb fraction
+     *  <curedOther>: any other cured fuel particle fractions required by a custom fuel model
      */
-    constructor (fuelModelRef, fuelCuringObj={curedHerb: 0}) {
-        this.#init()
-        this.#create(fuelModelRef, fuelCuringObj)
+    constructor(params=null) {
+        if (params)
+            this.update(params)
+        else
+            this.#init()
     }
 
     #init() {
@@ -40,14 +44,24 @@ export class FuelBed {
         this.windC = 0
         this.windE = 0
     }
-    #create(fuelModelRef, fuelCuringObj) {
-        this.fuelModel = fuelModelRef
-        this.depth= fuelModelRef.depth
-        this.deadMext = fuelModelRef.deadMext
+    /**
+     * @param {object} params An object with at least the following properties:
+     *  fuelModel: a reference to a FuelModel as returned by FuelModelCatalog::get()
+     *  curedHerb: the cured herb fraction
+     *  <curedOther>: any other cured fuel particle fractions required by a custom fuel model
+     * @returns A reference to *this* FuelBed instance
+     */
 
-        const dead = new FuelBedLife('dead', fuelModelRef, fuelCuringObj)
-        dead.mext = fuelModelRef.deadMext
-        const live = new FuelBedLife('live', fuelModelRef, fuelCuringObj)
+    update(params) {
+        this.#init()
+        const { fuelModel } = params
+        this.fuelModel = fuelModel
+        this.depth = fuelModel.depth
+        this.deadMext = fuelModel.deadMext
+
+        const dead = new FuelBedLife('dead', params)
+        dead.mext = fuelModel.deadMext
+        const live = new FuelBedLife('live', params)
         live.mext = 5   // will be re-determined by the parent FuelBed
 
         // Accumulate fuel bed total surface area (ft2), ovendry load (lb/ft2), and volume (ft3)
@@ -64,7 +78,7 @@ export class FuelBed {
 
         // Fuel bed packing ratio is the ratio of bulk density to particle density
         // Rothermel (1972) eq 31 (p 26)
-        const packingRatio = (fuelModelRef.depth > 0) ? volume / fuelModelRef.depth : 0
+        const packingRatio = (fuelModel.depth > 0) ? volume / fuelModel.depth : 0
 
         //  Rothermel (1972) eq 37 (p 19, 26) and eq 69 (p32).
         const packingRatioOpt = (savr > 0) ? 3.348 / savr**0.8189 : 0
@@ -107,7 +121,7 @@ export class FuelBed {
         const liveMextFactor = (live.fineFuelLoad > 0) ? 2.9 * (dead.fineFuelLoad / live.fineFuelLoad) : 0
 
         // Open-canopy midflame wind speed reduction factor
-        const f = Math.min(6, Math.max(fuelModelRef.depth, 0.1))
+        const f = Math.min(6, Math.max(fuelModel.depth, 0.1))
         const midflameWsrf = 1.83 / Math.log((20 + 0.36 * f) / (0.13 * f))
 
         //----------------------------------------------------------------------------------
@@ -115,7 +129,7 @@ export class FuelBed {
         //----------------------------------------------------------------------------------
         
         // Fuel bed ovendry bulk density (lb/ft3) is only used to derive heat sink
-        const bulkDensity = (fuelModelRef.depth > 0) ? ovendryLoad / fuelModelRef.depth : 0
+        const bulkDensity = (fuelModel.depth > 0) ? ovendryLoad / fuelModel.depth : 0
 
         // Fuel bed flame residence time (min)
         const residenceTime = (savr > 0) ? 384 / savr : 0
@@ -195,11 +209,11 @@ export class FuelBed {
  * in the section titled 'Formulation of Fire Spread Model'.
  */
 export class FuelBedLife {
-    constructor(category, fuelModelRef, fuelCuringObj) {
+    constructor(category, params) {
         this.#init()
-        this.#update(category, fuelModelRef, fuelCuringObj)
+        this.#update(category, params)
     }
-
+    
     #init() {
         this.fineFuelLoad = 0
         this.heatSource = 0
@@ -213,15 +227,14 @@ export class FuelBedLife {
         this.mineralDamping = 0
     }
 
-    #update(category, fuelModelRef, fuelCuringObj) {
+    #update(category, params) {
+        let { fuelModel } = params
         // Since fuel updates are generally processed much less frequently
         // than moisture updates, do as much computation as possible here
         const fineFuelLoadFactor = (category === 'dead') ? -138 : -500
         let lifeEffectiveMineral = 0
         let lifeFineFuelLoad = 0
         let lifeHeat = 0
-        let lifeHeatSource = 0
-        let lifeMineralDamping = 1
         let lifeNetLoad = 0
         let lifeOvendryLoad = 0
         const lifeParticles = []
@@ -234,17 +247,17 @@ export class FuelBedLife {
         // First iterate through all the *FuelModelParticles* to derive intermediate properties
         // and accumulate life category surface area, surface area by size class,
         // ovendry load, fine fuel load, and volume.
-        for(let particle of fuelModelRef.particles) {
+        for(let particle of fuelModel.particles) {
 
             // Could this particle have fuel in this life category?
             if (particle.life === category || particle.life === "curable") {
                 // Determine particle's ovendry load and accumulate it over this life category
                 let loadFraction = 1
-                // If particle is 'curable', determine it load fraction for this life category
+                // If particle is 'curable', determine its load fraction for this life category
                 if (particle.life === "curable") {
-                    if (!Object.hasOwn(fuelCuringObj, particle.curingClass))
-                        throw new Error(`FuelBedLife() fuel model ${fuelModelRef.number} has a curingClass '${particle.curingClass}' that is not defined in the fuelCuring input object.`)
-                    const curedFraction = fuelCuringObj[particle.curingClass]
+                    if (!Object.hasOwn(params, particle.curingClass))
+                        throw new Error(`FuelBedLife() fuel model ${fuelModel.number} has a curingClass '${particle.curingClass}' that is not defined in the input parameters object.`)
+                    const curedFraction = params[particle.curingClass]
                     loadFraction = (category === "dead") ? curedFraction : 1 - curedFraction
                 }
                 const ovendryLoad = loadFraction * particle.ovendryLoad
@@ -327,11 +340,11 @@ export class FuelBedLife {
         }
 
         // Life category mineral damping coefficient
-        lifeMineralDamping = (lifeEffectiveMineral > 0)
+        const lifeMineralDamping = (lifeEffectiveMineral > 0)
             ? fraction(0.174 / lifeEffectiveMineral**0.19) : 1
         
         // Life category heat source contribution to reaction intensity
-        lifeHeatSource = lifeNetLoad * lifeHeat * lifeMineralDamping
+        const lifeHeatSource = lifeNetLoad * lifeHeat * lifeMineralDamping
 
         // These properties are required down stream by FuelIgnition
         this.fineFuelLoad = lifeFineFuelLoad

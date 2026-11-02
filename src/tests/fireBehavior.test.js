@@ -11,9 +11,9 @@ const catalog = new FuelModelCatalog()
 describe('FireBehavior Class', () => {
     it('Fuel Model 10 FireBehavior properties match BehavePlus v5 and v6 beta:', () => {
         const fuelModel = catalog.get(10)
-        const fuelBed = new FuelBed(fuelModel, Bp.fuelCuring)
-        const fuelIgnition = new FuelIgnition(fuelBed, Bp.fuelMoisture)
-        const fireBehavior = new FireBehavior(fuelIgnition, Bp.windSlope, Bp.options)
+        const fuelBed = new FuelBed({fuelModel, curedHerb: Bp.fuelCuring.curedHerb})
+        const fuelIgnition = new FuelIgnition({fuelBed, ...Bp.fuelMoisture})
+        const fireBehavior = new FireBehavior({fuelIgnition, ...Bp.windSlope, ...Bp.options})
 
         expect(fireBehavior.xComponent).parts(0.75673013692577218, ppm)
         expect(fireBehavior.yComponent).parts(17.856644527335789, ppb)
@@ -35,9 +35,9 @@ describe('FireBehavior Class', () => {
 
     it('Fuel Model 124 FireBehavior properties match BehavePlus v5 and v6 beta:', () => {
         const fuelModel = catalog.get(124)
-        const fuelBed = new FuelBed(fuelModel, Bp.fuelCuring)
-        const fuelIgnition = new FuelIgnition(fuelBed, Bp.fuelMoisture)
-        const fireBehavior = new FireBehavior(fuelIgnition, Bp.windSlope, Bp.options)
+        const fuelBed = new FuelBed({fuelModel, curedHerb: Bp.fuelCuring.curedHerb})
+        const fuelIgnition = new FuelIgnition({fuelBed, ...Bp.fuelMoisture})
+        const fireBehavior = new FireBehavior({fuelIgnition, ...Bp.windSlope, ...Bp.options})
 
         expect(fireBehavior.xComponent).parts(1.9584486126230398, ppm)
         expect(fireBehavior.yComponent).parts(46.996312501163828, ppb)

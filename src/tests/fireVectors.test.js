@@ -1,5 +1,5 @@
 // @ts-nocheck
-import { FuelModelCatalog, FuelBed, FuelIgnition, FireBehavior, FireShape, FireSize } from '#lib/index.js'
+import { FuelModelCatalog, FuelBed, FuelIgnition, FireBehavior, FireShape, FireSize, FireVectorBetaAtRightFlank } from '#lib/index.js'
 import { FireVectorBack, FireVectorBeta, FireVectorBeta6, FireVectorHead,
     FireVectorPsi } from '#lib/index.js'
 import * as Bp from './Bp6Inputs.js'
@@ -16,12 +16,13 @@ const catalog = new FuelModelCatalog()
 //------------------------------------------------------------------------------
 let elapsed = Bp.firePosition.elapsedTime
 const airTemp = 95
-const midflameFpm = 880
+const midflameWindSpeed = 880
+const calcVectorFlameLength = true
 
 // const headingFromNorth = [87.573367385837855, 87.613728665173383]
 // console.log('betaFromhead', beta5FromHead) prints: [ 317.42663261416214, 317.38627133482663 ]
-const betaFromHead  = [360 - 42.573367385837855, 360 - 42.613728665173383]
-const psiFromHead   = [360 - 42.573367385837855, 360 - 42.613728665173383]
+const bpBetaFromHead  = [360 - 42.573367385837855, 360 - 42.613728665173383]
+const bpPsiFromHead   = [360 - 42.573367385837855, 360 - 42.613728665173383]
 // const beta5FromNorth  = [45, 45]
 // const beta6FromNorth = [45, 45]
 // const psiFromNorth   = [45, 45]
@@ -33,13 +34,13 @@ const psiFromHead   = [360 - 42.573367385837855, 360 - 42.613728665173383]
 const beta5fli010 = (389.95413667947145 * 2.6256648650882601) / 18.551680325448835
 // console.log('beta5fli010', beta5fli010) prints: 55.191166391033725
 const beta5fl010 = 0.45 * Math.pow(beta5fli010, 0.46)
-const beta5scht010 = getScorchHeight(beta5fli010, airTemp, midflameFpm)
+const beta5scht010 = getScorchHeight(beta5fli010, airTemp, midflameWindSpeed)
 
 // beta.fli = head.fli * beta5.ros / head.ros 
 const beta5fli124 = (2467.9286450361865 * 6.8494531181657319) / 48.47042599399056
 // console.log('beta5fli124', beta5fli124) prints: 348.7479469491235
 const beta5fl124 = 0.45 * Math.pow(beta5fli124, 0.46)
-const beta5scht124 = getScorchHeight(beta5fli124, airTemp, midflameFpm)
+const beta5scht124 = getScorchHeight(beta5fli124, airTemp, midflameWindSpeed)
 
 //------------------------------------------------------------------------------
 // BehavePlus 5 and V6-beta values
@@ -95,61 +96,67 @@ describe('FireVector Classes', () => {
         const beta5 = new FireVectorBeta()
         const beta6 = new FireVectorBeta6()
         const psi = new FireVectorPsi()
+        const right = new FireVectorBetaAtRightFlank()
 
         const fuel = [10, 124]
         for(let idx=0; idx<=1; idx++) {
             const fuelModel = catalog.get(fuel[idx])
-            const fuelBed = new FuelBed(fuelModel, Bp.fuelCuring)
-            const fuelIgnition = new FuelIgnition(fuelBed, Bp.fuelMoisture)
-            const fireBehavior = new FireBehavior(fuelIgnition, Bp.windSlope, Bp.options)
-            const fireShape = new FireShape(fireBehavior)
-            const fireSize = new FireSize(fireShape, Bp.firePosition)
-            
-            head.update(fireSize, true)
+            const fuelBed = new FuelBed({fuelModel, curedHerb: Bp.fuelCuring.curedHerb})
+            const fuelIgnition = new FuelIgnition({fuelBed, ...Bp.fuelMoisture})
+            const fireBehavior = new FireBehavior({fuelIgnition, ...Bp.windSlope, ...Bp.options})
+            const fireShape = new FireShape(fireBehavior)   // NOTE: fireBehavior IS an object
+            const fireSize = new FireSize({fireShape, ...Bp.firePosition})
+
+            const betaFromHead = bpBetaFromHead[idx]
+            const psiFromHead = bpPsiFromHead[idx]
+            const params = {fireSize, calcVectorFlameLength, betaFromHead, psiFromHead, airTemp, midflameWindSpeed}
+
+            head.update(params)
             expect(head.spreadRate).parts(bpFireSize.headRos[idx])
             expect(head.distance).parts(bpFireSize.headDist[idx])
             expect(head.firelineIntensity).parts(bpFireSize.headFli[idx])
             expect(head.flameLength).parts(bpFireSize.headFlame[idx])
-            expect(head.getScorchHeight(airTemp, midflameFpm)).parts(bpFireSize.headScorch[idx])
+            expect(head.getScorchHeight(params)).parts(bpFireSize.headScorch[idx])
 
-            back.update(fireSize, true)
+            back.update(params)
             expect(back.spreadRate).parts(bpFireSize.backRos[idx])
             expect(back.distance).parts(bpFireSize.backDist[idx])
             expect(back.firelineIntensity).parts(bpFireSize.backFli[idx])
             expect(back.flameLength).parts(bpFireSize.backFlame[idx])
-            expect(back.getScorchHeight(airTemp, midflameFpm)).parts(bpFireSize.backScorch[idx])
+            expect(back.getScorchHeight(params)).parts(bpFireSize.backScorch[idx])
 
-            beta5.update(fireSize, betaFromHead[idx])
+            beta5.update(params)
             expect(beta5.spreadRate).parts(bpFireSize.beta5Ros[idx])
             expect(beta5.distance).parts(bpFireSize.beta5Dist[idx])
             expect(beta5.firelineIntensity).parts(bpFireSize.beta5Fli[idx])
             expect(beta5.flameLength).parts(bpFireSize.beta5Flame[idx])
-            expect(beta5.getScorchHeight(airTemp, midflameFpm)).parts(bpFireSize.beta5Scorch[idx])
+            expect(beta5.getScorchHeight(params)).parts(bpFireSize.beta5Scorch[idx])
 
-            beta6.update(fireSize, betaFromHead[idx])
+            beta6.update(params)
             expect(beta6.spreadRate).parts(bpFireSize.beta6Ros[idx])
             expect(beta6.distance).parts(bpFireSize.beta6Dist[idx])
             expect(beta6.theta).parts(bpFireSize.beta6Theta[idx])
             expect(beta6.psi).parts(bpFireSize.beta6Psi[idx])
             expect(beta6.firelineIntensity).parts(bpFireSize.beta6Fli[idx], ppm)
             expect(beta6.flameLength).parts(bpFireSize.beta6Flame[idx])
-            expect(beta6.getScorchHeight(airTemp, midflameFpm)).parts(bpFireSize.beta6Scorch[idx], ppm)
+            expect(beta6.getScorchHeight(params)).parts(bpFireSize.beta6Scorch[idx], ppm)
 
-            psi.update(fireSize, psiFromHead[idx])
+            psi.update(params)
             expect(psi.spreadRate).parts(bpFireSize.psiRos[idx])
             expect(psi.distance).parts(bpFireSize.psiDist[idx])
             expect(psi.firelineIntensity).parts(bpFireSize.psiFli[idx])
             expect(psi.flameLength).parts(bpFireSize.psiFlame[idx])
-            expect(psi.getScorchHeight(airTemp, midflameFpm)).parts(bpFireSize.psiScorch[idx])
+            expect(psi.getScorchHeight(params)).parts(bpFireSize.psiScorch[idx])
 
-            // expect(right.distance).parts(bpFireSize.flankDist[idx])
-
+            right.update(params)
             // Flanking is an *expansion rate* from the ellipse center,
             // and *NOT* a *fire spread rate* as the fire didn't start at the center except for no-wind, no-slope cases.
             // Therefore, fireline intensity and flame length must use beta or phi
             // let theta = new ThetaVector(fireEllipse, 90)
             // expect(theta.spreadRate).parts(bpFireSize.flankRos[idx])
+            expect(fireSize.hSpreadRate).parts(bpFireSize.flankRos[idx])
             // expect(theta.distance).parts(bpFireSize.flankDist[idx])
+            expect(fireSize.hDistance).parts(bpFireSize.flankDist[idx])
             // expect(theta.firelineIntensity).parts(bpFireSize.flankFli[idx])
             // expect(theta.flameLength).parts(bpFireSize.flankFlame[idx])
             // expect(theta.scorchHeight).parts(bpFireSize.flankScorch[idx])

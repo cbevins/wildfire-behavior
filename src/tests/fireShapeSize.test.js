@@ -80,17 +80,17 @@ describe('FireShape and FireSize Class', () => {
         const fuel = [10, 124]
         for(let idx=0; idx<=1; idx++) {
             const fuelModel = catalog.get(fuel[idx])
-            const fuelBed = new FuelBed(fuelModel, Bp.fuelCuring)
-            const fuelIgnition = new FuelIgnition(fuelBed, Bp.fuelMoisture)
-            const fireBehavior = new FireBehavior(fuelIgnition, Bp.windSlope, Bp.options)
+            const fuelBed = new FuelBed({fuelModel, curedHerb: Bp.fuelCuring.curedHerb})
+            const fuelIgnition = new FuelIgnition({fuelBed, ...Bp.fuelMoisture})
+            const fireBehavior = new FireBehavior({fuelIgnition, ...Bp.windSlope, ...Bp.options})
             
-            const fireShape = new FireShape(fireBehavior)
+            const fireShape = new FireShape(fireBehavior)   // NOTE: fireBehavior IS an object
             for(let [prop, values] of Object.entries(bpShapeProps)) {
                 console.log(`Fuel Model ${fuel[idx]} prop ${prop} expect ${values[0]} received ${fireShape[prop]}`)
                 expect(fireShape[prop]).parts(values[idx], ppb)
             }
 
-            const fireSize = new FireSize(fireShape, Bp.firePosition)
+            const fireSize = new FireSize({fireShape, ...Bp.firePosition})
             for(let [prop, values] of Object.entries(bpSizeProps)) {
                 console.log(`Fuel Model ${fuel[idx]} prop ${prop} expect ${values[0]} received ${fireSize[prop]}`)
                 expect(fireSize[prop]).parts(values[idx], ppb)

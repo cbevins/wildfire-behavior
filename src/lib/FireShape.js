@@ -16,15 +16,21 @@ import { toRadians } from "./utils.js"
 
 export class FireShape {
     /**
-     * 
-     * @param {object} fireBehavior Reference to an object with properties:
-     * {headingSpreadRate, lengthWidthRatio, bearing, flameLength}
+     * @param {object} params An object with at least the following properties:
+     * - [req] fireBehavior: Reference to an object created by new FireBehavior(params) or fireBehavior.update(params)
+     *      - headingSpreadRate=0,
+     *      - lengthWidthRatio=1,
+     *      - bearing=0, fire direction of maximum spread (degrees clockwise from north)
+     *      - flameLength=0, flame length (ft)
      */
-    constructor(fireBehavior) {
-        this.init()
-        this.update(fireBehavior)
+    constructor(params=null) {
+        if (params)
+            this.update(params)
+        else
+            this.#init()
     }
-    init() {
+    
+    #init() {
         this.headingSpreadRate = 0
         this.lengthWidthRatio = 1
         this.flameLength = 0
@@ -48,13 +54,9 @@ export class FireShape {
         this.rotationSinInv = 0
     }
 
-    /**
-     * 
-     * @param {object} fireBehavior Object with properties 'headingSpreadRate', 'lengthWidthRatio', 'bearing', and 'flameLength'
-     */
-    update(fireBehavior) {
+    update(params) {
         // Get required fireBehavior input properties
-        const {headingSpreadRate, bearing, lengthWidthRatio, flameLength} = fireBehavior
+        const {headingSpreadRate=0, bearing=0, lengthWidthRatio=1, flameLength=0} = params
 
         // ellipse eccentricity [0..1] e = sqrt((a/b * a/b - 1) / (a/b))
         const lwr = lengthWidthRatio

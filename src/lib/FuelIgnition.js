@@ -11,17 +11,25 @@ import { fraction } from './utils.js'
 
 export class FuelIgnition {
     /**
-     * 
-     * @param {FuelBed} fuelBedRef Reference to an object created by new FuelBed()
-     * @param {object} fuelMoistureObj Reference to an object like {moistureDead1h, moistureDead10h, moistureDead100h,
-     * moistureLiveHerb, moistureLiveStem}}
+     * @param {object} params An object with at least the following properties:
+     *  - [req] fuelBed: a reference to a FuelBed as returned by new FuelBed(params) or fuelBed.update(params)
+     *  The following fuel moisture contents (ratio of water weight to ovendry fuel weight) are only technically
+     *  required if the fuelModel references them:
+     *  - moistureDead1h: 
+     *  - moistureDead10h:
+     *  - moistureDead100h:
+     *  - moistureLiveHerb:
+     *  - moistureLiveStem:
+     *  - <moistureOther>: any other fuel moisture class required by a custom fuel model (i..e., 'moistureDeadDuff')
      */
-    constructor(fuelBedRef, fuelMoistureObj) {
-        this.init()
-        this.update(fuelBedRef, fuelMoistureObj)
+    constructor(params=null) {
+        if (params)
+            this.update(params)
+        else
+            this.#init()
     }
 
-    init() {
+    #init() {
         this.fuelBed = null
         this.reactionIntensity = 0
         this.noWindSpreadRate = 0
@@ -32,8 +40,10 @@ export class FuelIgnition {
         this.live = {}
     }
 
-    update(fuelBedRef, fuelMoistureObj) {
-        this.fuelBed = fuelBedRef
+    update(params) {
+        this.#init()
+        const { fuelBed } = params
+        this.fuelBed = fuelBed
         
         // Update life category moisture variables
         const cat = {dead: {}, live: {}}
@@ -43,11 +53,11 @@ export class FuelIgnition {
             cat[life].fineFuelMoisture = 0
             cat[life].fineWaterLoad = 0
 
-            for(let particle of fuelBedRef[life].particles) {
+            for(let particle of fuelBed[life].particles) {
                 let moistureClass = particle.moistureClass
-                if(! Object.hasOwn(fuelMoistureObj, moistureClass))
-                    throw new Error(`makeFuelIgnition(): a fuel particle has a moisture class '${particle.moistureClass}' that is not defined in the fuelMoistureObj input object.`)
-                const moistureContent = fuelMoistureObj[moistureClass]
+                if(! Object.hasOwn(params, moistureClass))
+                    throw new Error(`makeFuelIgnition(): a fuel particle has a moisture class '${particle.moistureClass}' that is not defined in the input parameters object.`)
+                const moistureContent = params[moistureClass]
                 cat[life].moisture += moistureContent * particle.surfaceAreaWtg    // wtd average
 
                 // Particle heat of pre-ignition (BTU/lb) from Rothermel Eq 12 (p 7, 26)
@@ -63,17 +73,17 @@ export class FuelIgnition {
             
             // Only the DEAD life category fine fuel moisture content is needed, as it is
             // ONLY used in the computation of live fuel moisture content of extinction
-            cat[life].fineFuelMoisture = cat[life].fineWaterLoad / fuelBedRef[life].fineFuelLoad
+            cat[life].fineFuelMoisture = cat[life].fineWaterLoad / fuelBed[life].fineFuelLoad
         }
 
         // Fuel bed weighted heat of preignition
-        const heatPreIgn = cat.dead.heatPreIgn * fuelBedRef.dead.surfaceAreaWtg
-                        + cat.live.heatPreIgn * fuelBedRef.live.surfaceAreaWtg
+        const heatPreIgn = cat.dead.heatPreIgn * fuelBed.dead.surfaceAreaWtg
+                        + cat.live.heatPreIgn * fuelBed.live.surfaceAreaWtg
 
         // Live fuel moisture content of extinction
-        cat.dead.mext = fuelBedRef.dead.mext
+        cat.dead.mext = fuelBed.dead.mext
         const dry = 1 - cat.dead.fineFuelMoisture / cat.dead.mext
-        const liveMext = fuelBedRef.liveMextFactor * dry - 0.226
+        const liveMext = fuelBed.liveMextFactor * dry - 0.226
         cat.live.mext = Math.max(liveMext, cat.dead.mext)
 
         let reactionIntensity = 0
@@ -83,19 +93,19 @@ export class FuelIgnition {
             cat[life].moistureDamping = fraction(1 - 2.59 * r + 5.11 * r * r - 3.52 * r * r * r)
 
             // Fuel bed life category reaction intensity under current moisture conditions (BTU/ft2/min)
-            cat[life].reactionIntensity = fuelBedRef[life].reactionIntensityDry * cat[life].moistureDamping
+            cat[life].reactionIntensity = fuelBed[life].reactionIntensityDry * cat[life].moistureDamping
 
             // Fuel bed reaction intensity under current moisture conditions (BTU/ft2/min)
             reactionIntensity += cat[life].reactionIntensity
         }
         
         // Fire spread heat sink (BTU/ft3)
-        const heatSink = fuelBedRef.bulkDensity * heatPreIgn
+        const heatSink = fuelBed.bulkDensity * heatPreIgn
 
         // Fire spread heat source (BTU/ft2/min)
         // Product of the total fire reaction intensity (btu+1 ft-2 min-1)
         // and the fuel bed propagating flux ratio (ratio).
-        const heatSource = reactionIntensity * fuelBedRef.propagatingFluxRatio
+        const heatSource = reactionIntensity * fuelBed.propagatingFluxRatio
 
         // No-wind, no-slope fire spread rate
         const noWindSpreadRate = (heatSink > 0) ? heatSource / heatSink : 0

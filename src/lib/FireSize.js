@@ -1,16 +1,22 @@
 export class FireSize {
     /**
-     * 
-     * @param {*} fireShape 
-     * @param {*} firePosition Reference to an object with the following props:
-     *  {elapsedTime, ignEast, ignNorth, ignX, ignY}
-     * 
+     * @param {object} params An object with at least the following properties:
+     * - [req] fireShape: Reference to an object created by new FireShape(params) or fireShape.update(params)
+     *      or having ALL its properties
+     * - [opt] elapsedTime=0, elapsed time since ignition (min),
+     * - [opt] ignEast=0, ignition point easting in the projected coordinate system
+     * - [opt] ignNorth=0, ignition point northing in the projected coordinate system
+     * - [opt] ignX=0, ignition point x coordinate in fire ellipse's local coordinate system (no need to change this)
+     * - [opt] ignY=0, ignition point y coordinate in fire ellipse's local coordinate system (no need to change this)
      */
-    constructor(fireShape, firePosition) {
-        this.init()
-        this.update(fireShape, firePosition)
+    constructor(params=null) {
+        if (params)
+            this.update(params)
+        else
+            this.#init()
     }
-    init() {
+    
+    #init() {
         this.headingSpreadRate = 0
         this.lengthWidthRatio = 1
         this.flameLength = 0
@@ -54,10 +60,11 @@ export class FireSize {
         this.centerE = 0
         this.centerN = 0
     }
-    update(fireShape, firePosition) {
-        this.init()
+    
+    update(params) {
+        this.#init()
         // Get required inputs
-        let {elapsedTime=1, ignEast=0, ignNorth=0, ignX=0, ignY=0} = firePosition
+        let {fireShape, elapsedTime=1, ignEast=0, ignNorth=0, ignX=0, ignY=0} = params
 
         // Distance (ft) between the *ignition point* and the fire ellipse head
         const headingDistance = fireShape.headingSpreadRate * elapsedTime

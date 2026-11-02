@@ -3,10 +3,10 @@ import { clockwiseFromHeadToBearing, clockwiseFromHeadToRotation,
 import { calcBetaFromTheta, calcPsiFromTheta, calcThetaFromBeta } from './getEllipseAngles.js'
 
 export class FireVector {
-    constructor(optionsObj={calcFlameLength:true}) {
-        this.init()
-        this.calcFlameLength = optionsObj.calcFlameLength
+    constructor(params=null) {
+        if (!params) this.init()
     }
+
     init() {
         this.angleFromHead = 0
         this.bearing = 0
@@ -22,8 +22,17 @@ export class FireVector {
         this.scorchHeight = 0
         return this
     }
-    getScorchHeight(airF, midflameFpm) { 
-        this.scorchHeight = getScorchHeight(this.firelineIntensity, airF, midflameFpm)
+
+    /**
+     * 
+     * @param {object} params Object with following properties:
+     * - [opt] airTemp=77, air temperature (F)
+     * - [opt] midflameWindSpeed=0, wind speed at midflame height (ft/min)
+     * @returns 
+     */
+    getScorchHeight(params) {
+        const {airTemp=77, midflameWindSpeed=0} = params
+        this.scorchHeight = getScorchHeight(this.firelineIntensity, airTemp, midflameWindSpeed)
         return this.scorchHeight
     }
 }
@@ -35,14 +44,25 @@ export class FireVector {
 // or at [ignEast, ignNorth] projected coordinate system.
 //------------------------------------------------------------------------------
 export class FireVectorBeta extends FireVector {
-    constructor(optionsObj={calcFlameLength:true}) {
-        super(optionsObj)
+    /**
+     * @param {object} params Object with following properties:
+     * - [req] fireSize: Reference an object returned by new FireSize(params) or fireSize.update(params)
+     *          or has following properties:
+     *              {bearing, eccentricity, headingSpreadRate, firelineIntensity, rotationDeg,
+     *              elapsedTime, ignX, ignY, ignEast, ignNorth}
+     * - [opt] betaFromHead=0, fire vector angle in degrees clockwise from fire head
+     */
+    constructor(params=null) {
+        super(params)
+        if(params) this.update(params)
     }
-    update(fireSize, betaFromHead=0) {
-        this.init()
 
+    update(params) {
+        this.init()
+        
         // Get required fireSize (and fireShape) input properties
-        let {bearing, eccentricity:e, headingSpreadRate, firelineIntensity, rotationDeg,
+        const {fireSize, betaFromHead=0, calcVectorFlameLength=true} = params
+        const {bearing, eccentricity:e, headingSpreadRate, firelineIntensity, rotationDeg,
             elapsedTime, ignX, ignY, ignEast, ignNorth,} = fireSize
 
         // betaRotation is the *counter-clockwise* rotation from fire heading
@@ -63,7 +83,7 @@ export class FireVectorBeta extends FireVector {
         this.east = this.x + ignEast - ignX
         this.north = this.y + ignNorth - ignY
 
-        if (this.calcFlameLength)
+        if (calcVectorFlameLength)
             this.flameLength = getFlameLength(this.firelineIntensity)
         return this
     }
@@ -74,11 +94,13 @@ export class FireVectorBeta extends FireVector {
 //------------------------------------------------------------------------------
 
 export class FireVectorBeta6 extends FireVectorBeta {
-    constructor(optionsObj={calcFlameLength:true}) {
-        super(optionsObj)
+    constructor(params=null) {
+        super(params)
     }
-    update(fireSize, betaFromHead=0) {
-        super.update(fireSize, betaFromHead)
+
+    update(params) {
+        super.update(params)
+        const {fireSize, betaFromHead=0, calcVectorFlameLength=true} = params
 
        // betaRotation is the *counter-clockwise* rotation from fire heading
         const betaRotation = clockwiseFromHeadToRotation(betaFromHead)
@@ -89,7 +111,7 @@ export class FireVectorBeta6 extends FireVectorBeta {
         this.psiRos = calcPsiSpreadRate(fireSize, this.psi)
         this.firelineIntensity = fireSize.firelineIntensity * this.psiRos / fireSize.headingSpreadRate
 
-        if (this.calcFlameLength)
+        if (calcVectorFlameLength)
             this.flameLength = getFlameLength(this.firelineIntensity)
         return this
     }
@@ -97,36 +119,44 @@ export class FireVectorBeta6 extends FireVectorBeta {
 
 // Returns a FireVectorBeta where the angle from the ignition point intersects the left flank
 export class FireVectorBetaAtLeftFlank extends FireVectorBeta {
-    constructor(optionsObj={calcFlameLength:true}) {
-        super(optionsObj)
+    constructor(params=null) {
+        super(params)
     }
-    update(fireSize) {
-        // This gets the position using beta
+    
+    update(params) {
+        const {fireSize} = params
         const betaFromHead = calcBetaFromTheta(fireSize, 270)
-        return super.update(fireSize, betaFromHead)
+        return super.update({...params, betaFromHead})
     }
 }
 
 // Returns a FireVectorBeta where the angle from the ignition point intersects the right flank
 export class FireVectorBetaAtRightFlank extends FireVectorBeta {
-    constructor(optionsObj={calcFlameLength:true}) {
-        super(optionsObj)
+    constructor(params=null) {
+        super(params)
     }
-    update(fireSize) {
+    
+    update(params) {
+        const {fireSize} = params
         const betaFromHead = calcBetaFromTheta(fireSize, 90)
-        return super.update(fireSize, betaFromHead)
+        return super.update({...params, betaFromHead})
     }
 }
 
 export class FireVectorPsi extends FireVector {
-    constructor(optionsObj={calcFlameLength:true}) {
-        super(optionsObj)
+    constructor(params=null) {
+        super(params)
+        if(params) this.update(params)
     }
-    update(fireSize, psiFromHead=0) {
+
+    update(params) {
         this.init()
+        
+        // Get required fireSize (and fireShape) input properties
+        const {fireSize, psiFromHead=0, calcVectorFlameLength=true} = params
 
         // Get required fireEllipse/fireSize/firePosition input properties from fireSize
-        let {bearing, headingSpreadRate, firelineIntensity, rotationDeg,
+        const {bearing, headingSpreadRate, firelineIntensity, rotationDeg,
             ignX, ignY, ignEast, ignNorth} = fireSize
 
         // psiRotation is the *counter-clockwise* rotation from fire heading
@@ -146,27 +176,29 @@ export class FireVectorPsi extends FireVector {
         this.east = this.x + ignEast - ignX
         this.north = this.y + ignNorth - ignY
 
-        if (this.calcFlameLength)
+        if (calcVectorFlameLength)
             this.flameLength = getFlameLength(this.firelineIntensity)
         return this
     }
 }
 
 export class FireVectorBack extends FireVectorBeta {
-    constructor(optionsObj={calcFlameLength:true}) {
-        super(optionsObj)
+    constructor(params=null) {
+        super(params)
     }
-    update(fireSize) {
-        return super.update(fireSize, 180)
+    
+    update(params) {
+        return super.update({...params, betaFromHead: 180})
     }
 }
 
 export class FireVectorHead extends FireVectorBeta {
-    constructor(optionsObj={calcFlameLength:true}) {
-        super(optionsObj)
+    constructor(params=null) {
+        super(params)
     }
-    update(fireSize) {
-        return super.update(fireSize, 0)
+    
+    update(params) {
+        return super.update({...params, betaFromHead: 0})
     }
 }
 

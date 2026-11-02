@@ -14,7 +14,7 @@ const gr1 = catalog.get('gr1')
 
 describe('FuelBed Class', () => {
     it('inherits correct fuel model data', () => {
-        const bed = new FuelBed(gr1, {curedHerb: 0})
+        const bed = new FuelBed({fuelModel: gr1, curedHerb: 0})
         expect(bed.fuelModel.number).toBe(101)
         expect(bed.fuelModel.code).toBe('gr1')
     })
@@ -28,23 +28,23 @@ describe('FuelBed Class', () => {
     })
 
     it('apportions curable fuels between live and dead categories', () => {
-        let bed = new FuelBed(gr1, {curedHerb: 0})
+        let bed = new FuelBed({fuelModel: gr1, curedHerb: 0})
         expect(bed.dead.ovendryLoad).toBe(gr1.particles[0].ovendryLoad)
         expect(bed.live.ovendryLoad).toBe(gr1.particles[1].ovendryLoad)
 
         // FuelBed cannot be updated; a new instance must be created for every fuel model-curing combination
-        bed = new FuelBed(gr1, {curedHerb: 0.5})
+        bed = new FuelBed({fuelModel: gr1, curedHerb: 0.5})
         expect(bed.dead.ovendryLoad).toBe(gr1.particles[0].ovendryLoad + gr1.particles[1].ovendryLoad/2)
         expect(bed.live.ovendryLoad).toBe(gr1.particles[1].ovendryLoad/2)
 
-        bed = new FuelBed(gr1, {curedHerb: 1})
+        bed = new FuelBed({fuelModel: gr1, curedHerb: 1})
         expect(bed.dead.ovendryLoad).toBe(gr1.particles[0].ovendryLoad + gr1.particles[1].ovendryLoad)
         expect(bed.live.ovendryLoad).toBe(0)
     })
     
     it('Fuel Model 10 FuelBed properties match BehavePlus v5 and v6 beta:', () => {
         const fuelModel = catalog.get(10)
-        const fuelBed = new FuelBed(fuelModel, Bp.fuelCuring)
+        const fuelBed = new FuelBed({fuelModel, curedHerb: Bp.fuelCuring.curedHerb})
         
         expect(fuelBed.bulkDensity).parts(0.552, ppb)
         expect(fuelBed.depth).parts(1, ppb)
@@ -83,7 +83,7 @@ describe('FuelBed Class', () => {
     
     it('Fuel Model 124 FuelBed properties match BehavePlus v5 and v6 beta:', () => {
         const fuelModel = catalog.get(124)
-        const fuelBed = new FuelBed(fuelModel, Bp.fuelCuring)
+        const fuelBed = new FuelBed({fuelModel, curedHerb: Bp.fuelCuring.curedHerb})
 
         expect(fuelBed.surfaceArea).parts(29.062930440771346, ppb)
         expect(fuelBed.savr).parts(1631.1287341340956, ppb)
@@ -109,5 +109,4 @@ describe('FuelBed Class', () => {
         expect(fuelBed.live.reactionIntensityDry).parts(16957.560830348066, ppb)
         expect(fuelBed.live.savr).parts(1600, ppb)
     })
-
 })
