@@ -1,4 +1,4 @@
-import { FuelModelCatalog, FuelBed } from '../index.js'
+import { FuelModelCatalog, FuelBed } from '#lib/index.js'
 import * as Bp from './Bp6Inputs.js'
 
 import { describe, it, expect } from 'vitest'
@@ -6,8 +6,8 @@ import { parts, ppb } from './assertions.js'
 expect.extend({ parts })
 
 // Functions meant to *throw* and Error
-function fuelCuringNotAnObject() { const bed = new FuelBed(gr1, 0.5) }
-function fuelCuringUnknownKey() { const bed = new FuelBed(gr1, {unknown: 0}) }
+function fuelCuringNotAnObject() { new FuelBed(gr1, 0.5) }
+function fuelCuringUnknownKey() { new FuelBed(gr1, {unknown: 0}) }
 
 const catalog = new FuelModelCatalog()
 const gr1 = catalog.get('gr1')

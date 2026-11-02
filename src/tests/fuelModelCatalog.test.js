@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { FuelModelCatalog, model, curableHerb } from '../index.js'
+import { FuelModelCatalog, model, curableHerb } from '#lib/index.js'
 
 describe('FuelModelCatalog Class', () => {
     it('has FBFM13, FBFM40, and LANDFIRE fuel models available by number and code', () => {

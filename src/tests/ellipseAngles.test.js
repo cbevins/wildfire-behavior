@@ -1,6 +1,6 @@
-import { FuelModelCatalog, FuelBed, FuelIgnition, FireBehavior, FireShape, FireSize } from '../index.js'
+import { FuelModelCatalog, FuelBed, FuelIgnition, FireBehavior, FireShape } from '#lib/index.js'
 import { calcBetaFromPsi, calcBetaFromTheta, calcPsiFromBeta, calcPsiFromTheta,
-    calcThetaFromBeta, calcThetaFromPsi } from '../index.js'
+    calcThetaFromBeta, calcThetaFromPsi } from '#lib/index.js'
 import * as Bp from './Bp6Inputs.js'
     
 import { describe, it, expect } from 'vitest'
@@ -20,8 +20,8 @@ describe('ellipseAngles.js functions', () => {
         const fireShape = new FireShape(fireBehavior)
         
         expect(fireShape.headingSpreadRate).parts(fireBehavior.headingSpreadRate)
-        expect(fireShape.lengthWidthRatio).parts(3.5015680219321221)
-        expect(fireShape.firelineIntensity).parts(389.95413667947145)
+        expect(fireShape.lengthWidthRatio).parts(3.5015680219321221, ppb)
+        expect(fireShape.firelineIntensity).parts(389.95413667947145, ppb)
 
         for(let thetaDegFromInput = 0; thetaDegFromInput<=360; thetaDegFromInput++) {
             const betaDegFromTheta = calcBetaFromTheta(fireShape, thetaDegFromInput)
@@ -35,27 +35,27 @@ describe('ellipseAngles.js functions', () => {
             
             const thetaDegFromPsi = calcThetaFromPsi(fireShape, psiDegFromTheta)
             const thetaDegFromBeta = calcThetaFromBeta(fireShape, betaDegFromTheta)
-            expect(thetaDegFromPsi).parts(thetaDegFromInput)
-            expect(thetaDegFromBeta).parts(thetaDegFromInput)
+            expect(thetaDegFromPsi).parts(thetaDegFromInput, ppb)
+            expect(thetaDegFromBeta).parts(thetaDegFromInput, ppb)
         }
 
         for(let betaDegFromInput = 0; betaDegFromInput<=360; betaDegFromInput++) {
             const thetaDegFromBeta = calcThetaFromBeta(fireShape, betaDegFromInput)
             const psiDegFromBeta = calcPsiFromBeta(fireShape, betaDegFromInput)
             const psiDegFromTheta = calcPsiFromTheta(fireShape, thetaDegFromBeta)
-            expect(psiDegFromBeta).parts(psiDegFromTheta)
+            expect(psiDegFromBeta).parts(psiDegFromTheta, ppb)
 
             const betaDegFromPsi = calcBetaFromPsi(fireShape, psiDegFromTheta)
-            expect(betaDegFromPsi).parts(betaDegFromInput)
+            expect(betaDegFromPsi).parts(betaDegFromInput, ppb)
 
             const betaDegFromTheta = calcBetaFromTheta(fireShape, thetaDegFromBeta)
-            expect(betaDegFromTheta).parts(betaDegFromInput)
+            expect(betaDegFromTheta).parts(betaDegFromInput, ppb)
             
             const thetaDegFromPsi = calcThetaFromPsi(fireShape, psiDegFromBeta)
-            expect(thetaDegFromBeta).parts(thetaDegFromPsi)
+            expect(thetaDegFromBeta).parts(thetaDegFromPsi, ppb)
 
             const betaDegFromTheta2 = calcBetaFromTheta(fireShape, thetaDegFromPsi)
-            expect(betaDegFromTheta2).parts(betaDegFromInput)
+            expect(betaDegFromTheta2).parts(betaDegFromInput, ppb)
         }
     })
 })

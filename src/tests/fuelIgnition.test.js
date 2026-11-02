@@ -1,4 +1,4 @@
-import { FuelModelCatalog, FuelBed, FuelIgnition } from '../index.js'
+import { FuelModelCatalog, FuelBed, FuelIgnition } from '#lib/index.js'
 import * as Bp from './Bp6Inputs.js'
 
 import { describe, it, expect } from 'vitest'

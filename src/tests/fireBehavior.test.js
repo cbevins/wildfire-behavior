@@ -1,5 +1,5 @@
 // @ts-nocheck
-import { FuelModelCatalog, FuelBed, FuelIgnition, FireBehavior } from '../index.js'
+import { FuelModelCatalog, FuelBed, FuelIgnition, FireBehavior } from '#lib/index.js'
 import * as Bp from './Bp6Inputs.js'
 
 import { describe, it, expect } from 'vitest'

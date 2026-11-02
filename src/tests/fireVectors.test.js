@@ -1,9 +1,9 @@
 // @ts-nocheck
-import { FuelModelCatalog, FuelBed, FuelIgnition, FireBehavior, FireShape, FireSize } from '../index.js'
+import { FuelModelCatalog, FuelBed, FuelIgnition, FireBehavior, FireShape, FireSize } from '#lib/index.js'
 import { FireVectorBack, FireVectorBeta, FireVectorBeta6, FireVectorHead,
-    FireVectorPsi } from '../index.js'
+    FireVectorPsi } from '#lib/index.js'
 import * as Bp from './Bp6Inputs.js'
-import { getScorchHeight } from '../lib/utils.js'
+import { getScorchHeight } from '#lib/utils.js'
     
 import { describe, it, expect } from 'vitest'
 import { parts, ppm } from './assertions.js'
