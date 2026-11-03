@@ -1,10 +1,10 @@
 import { updateState,  stateParams } from '../use-cases/simpleState.js'
 import * as Bp from './Bp6Inputs.js'
-import { bpFireVector } from './Bp6Results.js'
+import { bpFireShape, bpFirePerim, bpFireVector } from './Bp6Results.js'
 import { getScorchHeight } from '#lib/utils.js'
 
 import { describe, it, expect } from 'vitest'
-import { parts, ppm } from './assertions.js'
+import { parts, ppb, ppm, ppt } from './assertions.js'
 expect.extend({ parts })
 
 //------------------------------------------------------------------------------
@@ -54,6 +54,14 @@ describe('simpleState use-case', () => {
             bpState.psiFromHead = bpFireVector.psiFromHead[idx]
             updateState(bpState)
 
+            expect(bpState.headingSpreadRate).parts(bpFireShape.headingSpreadRate[idx], ppb)
+            expect(bpState.headingFromNorth).parts(bpFireShape.headingFromNorth[idx], ppb)
+            expect(bpState.flameLength).parts(bpFireShape.flameLength[idx], ppb)
+            expect(bpState.lengthWidthRatio).parts(bpFireShape.lengthWidthRatio[idx], ppb)
+            
+            expect(bpState.fireSize.area).parts(bpFirePerim.area[idx], ppm)
+            expect(bpState.fireSize.perimeter).parts(bpFirePerim.perimeter[idx], ppt)
+            
             const head = stateParams.headVector
             expect(head.spreadRate).parts(bpFireVector.headRos[idx])
             expect(head.distance).parts(bpFireVector.headDist[idx])
