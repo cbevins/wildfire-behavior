@@ -40,7 +40,7 @@ const bpShapeProps = {
     // inputs
     headingSpreadRate: [18.551680325448835, 48.47042599399056],
     flameLength: [6.9996889013229229, 16.35631663317114],
-    bearing: [87.573367385837855, 87.613728665173383],
+    headingFromNorth: [87.573367385837855, 87.613728665173383],
     lengthWidthRatio: [3.5015680219321221, 3.5015819412846603],
     // setFireEllipse() outputs
     firelineIntensity: [389.95413667947145, 2467.9286450361865],

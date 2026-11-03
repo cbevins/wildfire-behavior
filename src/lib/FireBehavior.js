@@ -1,10 +1,39 @@
 /**
  * Given a FuelBed and FuelIgnition reference and wind-slope parameters, the FireBehavior class
- * determines the fire spread rate, bearing, fireline intensity, and length-to-width ratio.
+ * determines the fire spread rate, heading from north, fireline intensity, and length-to-width ratio.
  * A FireBehavior instance may be reused for different FuelBed, FuelIgnition, or wind-slope
  * parameters via its update() method.
  */
 import { getScorchHeight } from './utils.js'
+
+export const FireBehaviorProps = [
+    // Save whatever props are needed for use further downstream
+    {key: 'headingSpreadRate', type: 'spreadRate', init: 0, desc: ''},
+    {key: 'effWindFactor', type: 'factor', init: 0, desc: ''},
+    {key: 'effWindSpeed', type: 'windSpeed', init: 0, desc: ''},
+    {key: 'headingFromUpslope', type: 'bearing', init: 0, desc: ''},
+    {key: 'headingFromNorth', type: 'bearing', init: 0, desc: ''},
+    {key: 'heatPerUnitArea', type: 'heatPerUnitArea', init: 0, desc: ''},
+    {key: 'firelineIntensity', type: 'firelineIntensity', init: 0, desc: ''},
+    {key: 'flameLength', type: 'flameLength', init: 0, desc: ''},
+    {key: 'lengthWidthRatio', type: 'lengthWidthRatio', init: 1, desc: ''},
+    {key: 'midflameWindSpeed', type: 'windSpeed', init: 0, desc: ''},
+    // following are used by WeightedFireBehavior()
+    { key: 'reactionIntensity', type: 'reactionIntensity', init: 0, desc: ''},
+    { key: 'effWindLimitExceeded', type: 'bool', init: false, desc: ''},
+    { key: 'effWindSpeedLimit', type: 'windSpeed', init: 0, desc: ''},
+    { key: 'residenceTime', type: 'fireTime', init: 0, desc: '', units: 'min'},
+    { key: 'spreadRateLimit', type: 'spreadRate', init: 0, desc: ''},
+    { key: 'slopeFactor', type: '', init: 0, desc: ''},
+    { key: 'upslopeFromNorth', type: 'bearing', init: 0, desc: ''},
+    { key: 'windFactor', type: 'factor', init: 0, desc: ''},
+    { key: 'windHeadingFromUpslope', type: 'bearing', init: 0, desc: ''},
+    { key: 'noWindNoSlopeSpreadRate', type: 'spreadRate', init: 0, desc: ''},
+    { key: 'additionalWindSlopeSpreadRate', type: 'spreadRate', init: 0, desc: ''},
+    { key: 'xComponent', type: 'spreadRate', init: 0, desc: ''},
+    { key: 'yComponent', type: 'spreadRate', init: 0, desc: ''},
+    { key: 'crossSlopeWindSpreadRate', type: 'spreadRate', init: 0, desc: ''},
+]
 
 export class FireBehavior {
     /**
@@ -29,32 +58,8 @@ export class FireBehavior {
     }
 
     #init() {
-        // Save whatever is needed for use further downstream
-        this.headingSpreadRate = 0
-        this.effWindFactor = 0
-        this.effWindSpeed = 0
-        this.headingFromUpslope = 0
-        this.bearing = 0
-        this.heatPerUnitArea = 0
-        this.firelineIntensity = 0
-        this.flameLength = 0
-        this.lengthWidthRatio = 1
-        this.midflameWindSpeed = 0
-        // following are used by WeightedFireBehavior()
-        this.reactionIntensity = 0
-        this.effWindLimitExceeded = false
-        this.effWindSpeedLimit = 0
-        this.residenceTime = 0
-        this.spreadRateLimit = 0
-        this.slopeFactor = 0
-        this.upslopeFromNorth = 0
-        this.windFactor = 0
-        this.windHeadingFromUpslope = 0
-        this.noWindNoSlopeSpreadRate = 0
-        this.additionalWindSlopeSpreadRate = 0
-        this.xComponent = 0
-        this.yComponent = 0
-        this.crossSlopeWindSpreadRate = 0
+        for(let {key, init} of FireBehaviorProps)
+            this[key] = init
     }
 
     update(params) {
@@ -214,7 +219,7 @@ export class FireBehavior {
         this.effWindFactor = p.phi
         this.effWindSpeed = p.weff
         this.headingFromUpslope = fireHeadingFromUpslope
-        this.bearing = fireHeadingFromNorth
+        this.headingFromNorth = fireHeadingFromNorth
         this.heatPerUnitArea = heatPerUnitArea
         this.firelineIntensity = firelineIntensity
         this.flameLength = flameLength

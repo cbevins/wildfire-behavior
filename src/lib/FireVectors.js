@@ -2,24 +2,30 @@ import { clockwiseFromHeadToBearing, clockwiseFromHeadToRotation,
     getFlameLength, getScorchHeight, toRadians } from './utils.js'
 import { calcBetaFromTheta, calcPsiFromTheta, calcThetaFromBeta } from './getEllipseAngles.js'
 
+export const FireVectorProps = [
+    { key: 'angleFromHead', type: 'angle', init: 0, desc: ''},
+    { key: 'bearing', type: 'bearing', init: 0, desc: ''},
+    { key: 'ratio', type: 'ratio', init: 1, desc: ''},
+    { key: 'spreadRate', type: 'spreadRate', init: 0, desc: ''},
+    { key: 'distance', type: 'fireDistance', init: 0, desc: ''},
+    { key: 'firelineIntensity', type: 'firelineIntensity', init: 0, desc: ''},
+    { key: 'flameLength', type: 'flameLength', init: 0, desc: ''},
+    { key: 'x', type: 'easting', init: 0, desc: ''},
+    { key: 'y', type: 'northing', init: 0, desc: ''},
+    { key: 'east', type: 'easting', init: 0, desc: ''},
+    { key: 'north', type: 'northing', init: 0, desc: ''},
+    { key: 'scorchHeight', type: 'scorchHeight', init: 0, desc: ''},
+    // FireVectorBeta6 also has: theta, psi, psiRos 
+]
+
 export class FireVector {
     constructor(params=null) {
         if (!params) this.init()
     }
 
     init() {
-        this.angleFromHead = 0
-        this.bearing = 0
-        this.ratio = 1
-        this.spreadRate = 0
-        this.distance = 0
-        this.firelineIntensity = 0
-        this.flameLength = 0
-        this.x = 0
-        this.y = 0
-        this.east = 0
-        this.north = 0
-        this.scorchHeight = 0
+        for(let {key, init} of FireVectorProps)
+            this[key] = init
         return this
     }
 
@@ -62,7 +68,7 @@ export class FireVectorBeta extends FireVector {
         
         // Get required fireSize (and fireShape) input properties
         const {fireSize, betaFromHead=0, calcVectorFlameLength=true} = params
-        const {bearing, eccentricity:e, headingSpreadRate, firelineIntensity, rotationDeg,
+        const {headingFromNorth, eccentricity:e, headingSpreadRate, firelineIntensity, rotationDeg,
             elapsedTime, ignX, ignY, ignEast, ignNorth,} = fireSize
 
         // betaRotation is the *counter-clockwise* rotation from fire heading
@@ -70,7 +76,7 @@ export class FireVectorBeta extends FireVector {
         const betaRadians = toRadians(betaRotation + rotationDeg)
 
         this.angleFromHead = betaFromHead
-        this.bearing = clockwiseFromHeadToBearing(betaFromHead, bearing)
+        this.bearing = clockwiseFromHeadToBearing(betaFromHead, headingFromNorth)
 
         this.ratio = (1 - e) / (1 - e * Math.cos(toRadians(betaRotation)))
         this.spreadRate = this.ratio * headingSpreadRate
@@ -156,7 +162,7 @@ export class FireVectorPsi extends FireVector {
         const {fireSize, psiFromHead=0, calcVectorFlameLength=true} = params
 
         // Get required fireEllipse/fireSize/firePosition input properties from fireSize
-        const {bearing, headingSpreadRate, firelineIntensity, rotationDeg,
+        const {headingFromNorth, headingSpreadRate, firelineIntensity, rotationDeg,
             ignX, ignY, ignEast, ignNorth} = fireSize
 
         // psiRotation is the *counter-clockwise* rotation from fire heading
@@ -164,7 +170,7 @@ export class FireVectorPsi extends FireVector {
         const psiRadians = toRadians(psiRotation + rotationDeg)
 
         this.angleFromHead = psiFromHead
-        this.bearing = clockwiseFromHeadToBearing(psiFromHead, bearing)
+        this.bearing = clockwiseFromHeadToBearing(psiFromHead, headingFromNorth)
 
         this.spreadRate = calcPsiSpreadRate(fireSize, psiRotation)
         this.distance = this.spreadRate * fireSize.elapsedTime

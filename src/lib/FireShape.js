@@ -7,12 +7,37 @@
  * at the fire head and slowest at the fire back.
  * 
  * Four of the 7 inputs are provided by the FireBehavior class; passing a reference as
- * the 'inputs' object provides the 'headingSpreadRate', 'lengthWidthRatio', 'bearing',
+ * the 'inputs' object provides the 'headingSpreadRate', 'lengthWidthRatio', 'headingFromNorth',
  * and 'flameLength' properties.  Alternately, they can also be provided from direct
  * field observation.  These inputs determine the general ellipse shape, orientation,
  * and spread rates at various angles.
  */
 import { toRadians } from "./utils.js"
+
+export const FireShapeProps = [
+    // Save whatever props are needed for use further downstream
+    {key: 'headingSpreadRate', type: 'spreadRate', init: 0, desc: ''},
+    {key: 'lengthWidthRatio', type: 'lengthToWidthRatio', init: 1, desc: ''},
+    {key: 'flameLength', type: 'flameLength', init: 0, desc: ''},
+    {key: 'headingFromNorth', type: 'bearing', init: 0, desc: ''},
+    {key: 'eccentricity', type: 'eccentricity', init: 0, desc: ''},
+    {key: 'backingSpreadRate', type: 'spreadRate', init: 0, desc: ''},
+    {key: 'majorExpansionRate', type: 'spreadRate', init: 0, desc: ''},
+    {key: 'minorExpansionRate', type: 'spreadRate', init: 0, desc: ''},
+    {key: 'fSpreadRate', type: 'spreadRate', init: 0, desc: ''},
+    {key: 'hSpreadRate', type: 'spreadRate', init: 0, desc: ''},
+    {key: 'gSpreadRate', type: 'spreadRate', init: 0, desc: ''},
+    {key: 'latusRectumSpreadRate', type: 'spreadRate', init: 0, desc: ''},
+    {key: 'effectiveWindSpeed', type: 'windSpeed', init: 0, desc: ''},
+    {key: 'firelineIntensity', type: 'firelineIntensity', init: 0, desc: ''},
+    {key: 'heatPerUnitArea', type: 'heatPerUnitArea', init: 0, desc: ''},
+    {key: 'rotationDeg', type: 'bearing', init: 0, desc: ''},
+    {key: 'rotationRad', type: 'angle', init: 0, desc: ''},
+    {key: 'rotationCos', type: 'cos', init: 0, desc: ''},
+    {key: 'rotationSin', type: 'sin', init: 0, desc: ''},
+    {key: 'rotationCosInv', type: 'cos', init: 0, desc: ''},
+    {key: 'rotationSinInv', type: 'sin', init: 0, desc: ''},
+]
 
 export class FireShape {
     /**
@@ -20,7 +45,7 @@ export class FireShape {
      * - [req] fireBehavior: Reference to an object created by new FireBehavior(params) or fireBehavior.update(params)
      *      - headingSpreadRate=0,
      *      - lengthWidthRatio=1,
-     *      - bearing=0, fire direction of maximum spread (degrees clockwise from north)
+     *      - headingFromNorth=0, fire direction of maximum spread (degrees clockwise from north)
      *      - flameLength=0, flame length (ft)
      */
     constructor(params=null) {
@@ -31,32 +56,13 @@ export class FireShape {
     }
     
     #init() {
-        this.headingSpreadRate = 0
-        this.lengthWidthRatio = 1
-        this.flameLength = 0
-        this.bearing = 0
-        this.eccentricity = 0
-        this.backingSpreadRate = 0
-        this.majorExpansionRate = 0
-        this.minorExpansionRate = 0
-        this.fSpreadRate = 0
-        this.hSpreadRate = 0
-        this.gSpreadRate = 0
-        this.latusRectumSpreadRate = 0
-        this.effectiveWindSpeed = 0
-        this.firelineIntensity = 0
-        this.heatPerUnitArea = 0
-        this.rotationDeg = 0
-        this.rotationRad = 0
-        this.rotationCos = 0
-        this.rotationSin = 0
-        this.rotationCosInv = 0
-        this.rotationSinInv = 0
+        for(let {key, init} of FireShapeProps)
+            this[key] = init
     }
 
     update(params) {
         // Get required fireBehavior input properties
-        const {headingSpreadRate=0, bearing=0, lengthWidthRatio=1, flameLength=0} = params
+        const {headingSpreadRate=0, headingFromNorth=0, lengthWidthRatio=1, flameLength=0} = params
 
         // ellipse eccentricity [0..1] e = sqrt((a/b * a/b - 1) / (a/b))
         const lwr = lengthWidthRatio
@@ -107,7 +113,7 @@ export class FireShape {
         const heatPerUnitArea = (ros > 0) ? (60 * firelineIntensity / ros) : 0
 
         // Rotation of ellipse from normal (counter-clockwise)
-        const rotationDeg = (450 - bearing) % 360   // ellipse rotation degrees counter-clockwise from x-axis
+        const rotationDeg = (450 - headingFromNorth) % 360   // ellipse rotation degrees counter-clockwise from x-axis
         const rotationRad = toRadians(rotationDeg)
 
         const rotationCos = Math.cos(rotationRad)
@@ -120,7 +126,7 @@ export class FireShape {
         this.headingSpreadRate = headingSpreadRate
         this.lengthWidthRatio = lengthWidthRatio
         this.flameLength = flameLength
-        this.bearing = bearing
+        this.headingFromNorth = headingFromNorth
         this.eccentricity = eccentricity
         this.backingSpreadRate = backingSpreadRate
         this.majorExpansionRate = majorExpansionRate

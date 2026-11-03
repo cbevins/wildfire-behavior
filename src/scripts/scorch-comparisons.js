@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 function testsScorchHeight(fli, f=77, fpm=0) {
     const mph = fpm / 88
     return (fli > 0) ? ((63 / (140 - f)) * fli**(7/6)) /
@@ -29,7 +27,6 @@ function behaveScorchHeight (fli, f, fpm) {
         : ((63 / (140 - f)) * Math.pow(fli, (7/6))) /
             Math.sqrt(fli + mph * mph * mph)
 }
-
 
 //------------------------------------------------------------------------------
 /*! \brief Calculates scorch height from fireline intensity, wind speed, and

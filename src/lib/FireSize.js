@@ -1,3 +1,47 @@
+export const FireSizeProps = [
+    {key: 'headingSpreadRate', type: 'spreadRate', init: 0, desc: ''},
+    {key: 'headingFromNorth', type: 'bearing', init: 0, desc: ''},
+    {key: 'flameLength', type: 'flameLength', init: 0, desc: ''},
+    {key: 'lengthWidthRatio', type: 'lengthWidthRatio', init: 1, desc: ''},
+    {key: 'eccentricity', type: 'eccentricity', init: 0, desc: ''},
+    {key: 'backingSpreadRate', type: 'spreadRate', init: 0, desc: ''},
+    {key: 'majorExpansionRate', type: 'spreadRate', init: 0, desc: ''},
+    {key: 'minorExpansionRate', type: 'spreadRate', init: 0, desc: ''},
+    {key: 'fSpreadRate', type: 'spreadRate', init: 0, desc: ''},
+    {key: 'hSpreadRate', type: 'spreadRate', init: 0, desc: ''},
+    {key: 'gSpreadRate', type: 'spreadRate', init: 0, desc: ''},
+    {key: 'latusRectumSpreadRate', type: '', init: 0, desc: ''},
+    {key: 'effectiveWindSpeed', type: '', init: 0, desc: ''},
+    {key: 'firelineIntensity', type: 'firelineIntensity', init: 0, desc: ''},
+    {key: 'heatPerUnitArea', type: 'heatPerUnitArea', init: 0, desc: ''},
+    {key: 'rotationDeg', type: 'bearing', init: 0, desc: 'Ellipse rotation degrees counter-clockwise from x-axis'},
+    {key: 'rotationRad', type: 'angle', init: 0, desc: ''},
+    {key: 'rotationCos', type: 'cos', init: 0, desc: ''},
+    {key: 'rotationSin', type: 'sin', init: 0, desc: ''},
+    {key: 'rotationCosInv', type: 'cos', init: 0, desc: ''},
+    {key: 'rotationSinInv', type: 'sin', init: 0, desc: ''},
+    {key: 'headingDistance', type: 'fireDistance', init: 0, desc: ''},
+    {key: 'backingDistance', type: 'fireDistance', init: 0, desc: ''},
+    {key: 'elapsedTime', type: 'fireTime', init: 0, desc: ''},
+    {key: 'fDistance', type: 'fireDistance', init: 0, desc: ''},
+    {key: 'gDistance', type: 'fireDistance', init: 0, desc: ''},
+    {key: 'hDistance', type: 'fireDistance', init: 0, desc: ''},
+    {key: 'latusRectumDistance', type: 'fireDistance', init: 0, desc: ''},
+    {key: 'length', type: 'fireDistance', init: 0, desc: ''},
+    {key: 'width', type: 'fireDistance', init: 0, desc: ''},
+    {key: 'area', type: 'fireSize', init: 0, units: 'ft2', desc: ''},
+    {key: 'acres', type: 'fireSize', init: 0, units: 'ac', desc: ''},
+    {key: 'perimeter', type: 'fireDistance', init: 0, desc: ''},
+    {key: 'ignEast', type: 'easting', init: 0, desc: ''},
+    {key: 'ignNorth', type: 'northing', init: 0, desc: ''},
+    {key: 'ignX', type: 'easting', init: 0, desc: ''},
+    {key: 'ignY', type: 'northing', init: 0, desc: ''},
+    {key: 'centerX', type: 'easting', init: 0, desc: ''},
+    {key: 'centerY', type: 'northing', init: 0, desc: ''},
+    {key: 'centerE', type: 'easting', init: 0, desc: ''},
+    {key: 'centerN', type: 'northing', init: 0, desc: ''},
+]
+
 export class FireSize {
     /**
      * @param {object} params An object with at least the following properties:
@@ -17,50 +61,10 @@ export class FireSize {
     }
     
     #init() {
-        this.headingSpreadRate = 0
-        this.lengthWidthRatio = 1
-        this.flameLength = 0
-        this.bearing = 0
-        this.eccentricity = 0
-        this.backingSpreadRate = 0
-        this.majorExpansionRate = 0
-        this.minorExpansionRate = 0
-        this.fSpreadRate = 0
-        this.hSpreadRate = 0
-        this.gSpreadRate = 0
-        this.latusRectumSpreadRate = 0
-        this.effectiveWindSpeed = 0
-        this.firelineIntensity = 0
-        this.heatPerUnitArea = 0
-        this.rotationDeg = 0
-        this.rotationRad = 0
-        this.rotationCos = 0
-        this.rotationSin = 0
-        this.rotationCosInv = 0
-        this.rotationSinInv = 0
-
-        this.headingDistance = 0
-        this.backingDistance = 0
-        this.elapsedTime = 0
-        this.fDistance = 0
-        this.gDistance = 0
-        this.hDistance = 0
-        this.latusRectumDistance = 0
-        this.length = 0
-        this.width = 0
-        this.area = 0
-        this.acres = 0
-        this.perimeter = 0
-        this.ignEast = 0
-        this.ignNorth = 0
-        this.ignX = 0
-        this.ignY = 0
-        this.centerX = 0
-        this.centerY = 0
-        this.centerE = 0
-        this.centerN = 0
+        for(let {key, init} of FireSizeProps)
+            this[key] = init
     }
-    
+
     update(params) {
         this.#init()
         // Get required inputs
@@ -110,7 +114,7 @@ export class FireSize {
         this.headingSpreadRate = fireShape.headingSpreadRate
         this.lengthWidthRatio = fireShape.lengthWidthRatio
         this.flameLength = fireShape.flameLength
-        this.bearing = fireShape.bearing
+        this.headingFromNorth = fireShape.headingFromNorth
         this.eccentricity = fireShape.eccentricity
         this.backingSpreadRate = fireShape.backingSpreadRate
         this.majorExpansionRate = fireShape.majorExpansionRate
