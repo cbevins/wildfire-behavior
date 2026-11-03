@@ -94,7 +94,6 @@ const beta5scht124 = SurfaceFire.scorchHeight(beta5fli124, midflame, airTemp)
 const m = mapScale
 const m2 = m * m
 
-const e = 'surface.fire.ellipse.'
 export const FireEllipseBp6Results = {   // array value are for fuel keys ['10', '124']
   fuels: ['10', '124'],
   axis: {

@@ -1,6 +1,6 @@
-/**
- * Collection of standard input objects used for testing
- */
+//------------------------------------------------------------------------------
+// BehavePlus inputs used to test BehavePlus 5 and 6
+//------------------------------------------------------------------------------
 
 // Used by new FireSize()
 export const firePosition = {

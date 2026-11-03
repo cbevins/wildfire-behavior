@@ -40,7 +40,7 @@ export const stateParams = {
     // Updating the FireVectors
     betaFromHead: 45,
     psiFromHead: 45,
-    calcFlameLength: true,
+    calcVectorFlameLength: true,
 
     // EXPERIMENTAL
     configFireBehavior: 'estimated',   // 'estimated' or 'input'
