@@ -15,7 +15,7 @@ export const FireVectorProps = [
     { key: 'east', type: 'easting', init: 0, desc: ''},
     { key: 'north', type: 'northing', init: 0, desc: ''},
     { key: 'scorchHeight', type: 'scorchHeight', init: 0, desc: ''},
-    // FireVectorBeta6 also has: theta, psi, psiRos 
+    // FireVectorBeta6 also adds: theta, psi, psiRos 
 ]
 
 export class FireVector {

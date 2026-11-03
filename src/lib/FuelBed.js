@@ -1,5 +1,35 @@
 import { fraction } from './utils.js'
 
+export const FuelBedProps = [
+    {key: 'fuelModel', type: 'object', init: null, desc: 'Reference to a FuelModel'},
+    {key: 'depth', type: 'fuelDepth', init: 1, desc: ''},
+    {key: 'deadMext', type: 'fuelMoisture', init: 0.15, desc: ''},
+    {key: 'dead', type: 'object', init: {}, desc: 'Dead category FuelBedLife'},
+    {key: 'live', type: 'object', init: {}, desc: 'Live category FuelBedLife'},
+    {key: 'savr', type: 'surfaceAreaToVolumeRatio', init: 0, desc: ''},
+    {key: 'packingRatio', type: 'ratio', init: 0, desc: ''},
+    {key: 'propagatingFluxRatio', type: 'ratio', init: 0, desc: ''},
+    {key: 'liveMextFactor', type: 'factor', init: 0, desc: ''},
+    {key: 'bulkDensity', type: 'density', init: 0, desc: ''},
+    {key: 'residenceTime', type: 'fireTime', init: 0, desc: ''},
+    {key: 'slopeK', type: 'factor', init: 0, desc: ''},
+    {key: 'windB', type: 'factor', init: 0, desc: ''},
+    {key: 'windI', type: 'factor', init: 0, desc: ''},
+    {key: 'windK', type: 'factor', init: 0, desc: ''},
+    {key: 'midflameWsrf', type: 'factor', init: 0, desc: ''},
+    {key: 'ovendryLoad', type: 'fuelLoad', init: 0, desc: ''},
+    {key: 'surfaceArea', type: 'fuelArea', init: 0, desc: ''},
+    {key: 'volume', type: 'fuelVolume', init: 0, desc: ''},
+    {key: 'packingRatioFraction', type: 'ratio', init: 0, desc: ''},
+    {key: 'packingRatioOpt', type: 'ratio', init: 0, desc: ''},
+    {key: 'reactionVelocityExp', type: 'factor', init: 0, desc: ''},
+    {key: 'reactionVelocityMax', type: 'reactionVelocity', init: 0, desc: ''},
+    {key: 'reactionVelocityOpt', type: 'reactionVelocity', init: 0, desc: ''},
+    {key: 'savr15', type: 'factor', init: 0, desc: ''},
+    {key: 'windC', type: 'factor', init: 0, desc: ''},
+    {key: 'windE', type: 'factor', init: 0, desc: ''},
+]
+
 export class FuelBed {
     /**
      * Returns a FuelBed with any curable fuels apportioned to their respective dead and live classes.
@@ -16,34 +46,11 @@ export class FuelBed {
     }
 
     #init() {
-        this.fuelModel = null
-        this.depth = 1
-        this.deadMext = 0.15
-        this.dead = {}
-        this.live = {}
-        this.savr = 0
-        this.packingRatio = 0
-        this.propagatingFluxRatio = 0
-        this.liveMextFactor = 0
-        this.bulkDensity = 0
-        this.residenceTime = 0
-        this.slopeK = 0
-        this.windB = 0
-        this.windI = 0
-        this.windK = 0
-        this.midflameWsrf = 0
-        this.ovendryLoad = 0
-        this.surfaceArea = 0
-        this.volume = 0
-        this.packingRatioFraction = 0
-        this.packingRatioOpt = 0
-        this.reactionVelocityExp = 0
-        this.reactionVelocityMax = 0
-        this.reactionVelocityOpt = 0
-        this.savr15 = 0
-        this.windC = 0
-        this.windE = 0
+        for(let {key, init} of FuelBedProps)
+            this[key] = init
+        return this
     }
+
     /**
      * @param {object} params An object with at least the following properties:
      *  fuelModel: a reference to a FuelModel as returned by FuelModelCatalog::get()
@@ -178,7 +185,6 @@ export class FuelBed {
         this.live = live
         this.savr = savr
         this.packingRatio = packingRatio
-        this.packingRatioFraction = packingRatioFraction
         this.propagatingFluxRatio = propagatingFluxRatio
         this.liveMextFactor = liveMextFactor
         this.bulkDensity = bulkDensity
@@ -203,6 +209,18 @@ export class FuelBed {
     }
 }
 
+export const FuelBedLifeProps = [
+    {key: 'fineFuelLoad', type: 'fuelLoad', init: 0, desc: ''},
+    {key: 'heatSource', type: 'heatSource', init: 0, desc: ''},
+    {key: 'netLoad', type: 'fuelLoad', init: 0, desc: ''},
+    {key: 'ovendryLoad', type: 'fuelLoad', init: 0, desc: ''},
+    {key: 'particles', type: 'array', init: [], desc: 'Array of objects with ehn, fine fuel load, moisture class, and surface area wtg'},
+    {key: 'savr', type: 'surfaceAreaToVolume', init: 0, desc: ''},
+    {key: 'surfaceArea', type: 'fuelArea', init: 0, desc: ''},
+    {key: 'volume', type: '', init: 0, desc: ''},
+    {key: 'heat', type: 'fuelHeat', init: 0, desc: ''},
+    {key: 'mineralDamping', type: 'fraction', init: 0, desc: ''},
+]
 /**
  * The FuelBedLife class converts Fuel Model parameters into a 'dead' or 'live'
  * fuel bed following the weighting procedures described by Rothermel (1972)
@@ -215,16 +233,9 @@ export class FuelBedLife {
     }
     
     #init() {
-        this.fineFuelLoad = 0
-        this.heatSource = 0
-        this.netLoad = 0
-        this.ovendryLoad = 0
-        this.particles = {}
-        this.savr = 0
-        this.surfaceArea = 0
-        this.volume = 0
-        this.heat = 0
-        this.mineralDamping = 0
+        for(let {key, init} of FuelBedLifeProps)
+            this[key] = init
+        return this
     }
 
     #update(category, params) {

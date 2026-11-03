@@ -9,6 +9,17 @@
  */
 import { fraction } from './utils.js'
 
+export const FuelIgnitionProps = [
+    {key: 'fuelBed', type: 'object', init: null, desc: 'Reference to a FuelBed'},
+    {key: 'reactionIntensity', type: 'reactionIntensity', init: 0, desc: 'Btu/ft2/min'},
+    {key: 'noWindSpreadRate', type: 'spreadRate', init: 0, desc: ''},
+    {key: 'heatPreIgn', type: 'fuelHeat', init: 0, desc: '', units: 'Btu/lb'},
+    {key: 'heatSink', type: 'heatSink', init: 0, desc: '', units: 'Btu/ft3'},
+    {key: 'heatSource', type: 'heatSource', init: 0, desc: '', units: 'Btu/ft2/min'},
+    {key: 'dead', type: '', init: {}, desc: 'Dead category {moisture, heatPreIgn, waterLoad, fineFuelMoisture}'},
+    {key: 'live', type: '', init: {}, desc: 'Live Category {moisture, heatPreIgn, waterLoad, fineFuelMoisture}'},
+]
+
 export class FuelIgnition {
     /**
      * @param {object} params An object with at least the following properties:
@@ -28,16 +39,10 @@ export class FuelIgnition {
         else
             this.#init()
     }
-
     #init() {
-        this.fuelBed = null
-        this.reactionIntensity = 0
-        this.noWindSpreadRate = 0
-        this.heatPreIgn = 0
-        this.heatSink = 0
-        this.heatSource = 0
-        this.dead = {}
-        this.live = {}
+        for(let {key, init} of FuelIgnitionProps)
+            this[key] = init
+        return this
     }
 
     update(params) {
@@ -60,7 +65,7 @@ export class FuelIgnition {
                 const moistureContent = params[moistureClass]
                 cat[life].moisture += moistureContent * particle.surfaceAreaWtg    // wtd average
 
-                // Particle heat of pre-ignition (BTU/lb) from Rothermel Eq 12 (p 7, 26)
+                // Particle heat of pre-ignition (Btu/lb) from Rothermel Eq 12 (p 7, 26)
                 const heatPreIgn = particle.effHeating * (250.0 + 1116.0 * moistureContent)
                 cat[life].heatPreIgn += heatPreIgn * particle.surfaceAreaWtg      // wtd average
 
@@ -99,15 +104,15 @@ export class FuelIgnition {
             reactionIntensity += cat[life].reactionIntensity
         }
         
-        // Fire spread heat sink (BTU/ft3)
+        // Fire spread heat sink (Btu/ft3)
         const heatSink = fuelBed.bulkDensity * heatPreIgn
 
-        // Fire spread heat source (BTU/ft2/min)
-        // Product of the total fire reaction intensity (btu+1 ft-2 min-1)
+        // Fire spread heat source (Btu/ft2/min)
+        // Product of the total fire reaction intensity (Btu/ft2/min)
         // and the fuel bed propagating flux ratio (ratio).
         const heatSource = reactionIntensity * fuelBed.propagatingFluxRatio
 
-        // No-wind, no-slope fire spread rate
+        // No-wind, no-slope fire spread rate (ft/min)
         const noWindSpreadRate = (heatSink > 0) ? heatSource / heatSink : 0
         
         this.reactionIntensity = reactionIntensity
