@@ -42,7 +42,7 @@ export const FireShapeProps = [
 export class FireShape {
     /**
      * @param {object} params An object with at least the following properties:
-     * - [req] fireBehavior: Reference to an object created by new FireBehavior(params) or fireBehavior.update(params)
+     * - [req] params: Reference to an object containing a 'fireBehavior' object, which must have:
      *      - headingSpreadRate=0,
      *      - lengthWidthRatio=1,
      *      - headingFromNorth=0, fire direction of maximum spread (degrees clockwise from north)
@@ -62,7 +62,7 @@ export class FireShape {
 
     update(params) {
         // Get required fireBehavior input properties
-        const {headingSpreadRate=0, headingFromNorth=0, lengthWidthRatio=1, flameLength=0} = params
+        const {headingSpreadRate=0, headingFromNorth=0, lengthWidthRatio=1, flameLength=0} = params.fireBehavior
 
         // ellipse eccentricity [0..1] e = sqrt((a/b * a/b - 1) / (a/b))
         const lwr = lengthWidthRatio

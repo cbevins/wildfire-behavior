@@ -1,16 +1,18 @@
 /**
- * simpleState.js refactors simple.js as a state machine.
- * All inputs are specified in a single params object 'simpleState'.
+ * simpleState.js refactors simple2.js as a state machine.
  * 
- * You can use this file to import and modify ther stateParams,
- * then call simpleState() and displayState().
+ * All inputs are specified in a single params object (use the 'simpleStateParams' as a template).
+ * 
+ * This is not optimized in any manner in that all modules are updated with each update() call.
+ * But is still suitable for producing in cases where the input params are (semi-) random or
+ * unknown in advance.  One such use-case is producing FlamMap style maps from LANDFIRE
+ * fuel model, slope, aspect arrays and local wind and fuel moisture inputs.
  */
-
 import { FuelModelCatalog, FuelBed, FuelIgnition, FireBehavior, FireShape, FireSize } from '#lib/index.js'
-import { FireVectorBack, FireVectorBeta, FireVectorBeta6, FireVectorHead,
-    FireVectorPsi } from '#lib/index.js'
+import { FireVectorBack, FireVectorBeta, FireVectorBeta6, FireVectorHead, FireVectorPsi } from '#lib/index.js'
+import { fmt, fmtVector } from './utils.js'
 
-export const stateParams = {
+export const simpleStateParams = {
     // The following may be modified:
     // Creating a FuelModel
     fuelKey: '10',
@@ -25,10 +27,9 @@ export const stateParams = {
     // Updating the FireBehavior
     midflameWindSpeed: 10*88,
     windBearing: 90,
-    slopeRatio: 0.25,
-    slopeDegrees: 14.03624347,
+    slopeRatio: 0.25,                   // slopeDegrees: 14.03624347,
     aspect: 180,
-    airTemp: 95,                        // only used by scorch height
+    airTemp: 95,                        // only used by vector scorch height
     limitWindSpeedFactor: true,
     limitSpreadRateToWindSpeed: true,
     // Updating the FireSize
@@ -41,86 +42,91 @@ export const stateParams = {
     betaFromHead: 45,
     psiFromHead: 45,
     calcVectorFlameLength: true,
-
-    // EXPERIMENTAL
-    configFireBehavior: 'estimated',   // 'estimated' or 'input'
-
-    // DO NOT MODIFY THESE!
-    fuelCatalog: new FuelModelCatalog(),
-    fuelModel: null,
-    fuelBed: new FuelBed(),
-    fuelIgnition: new FuelIgnition(),
-    fireBehavior: new FireBehavior(),
-    fireShape: new FireShape(),
-    fireSize: new FireSize(),
-    headVector: new FireVectorHead(),
-    backVector: new FireVectorBack(),
-    beta5Vector: new FireVectorBeta(),
-    beta6Vector: new FireVectorBeta6(),
-    psiVector: new FireVectorPsi(),
 }
 
-export function updateState(state) {
-    // Process fire spread rate, intensity, and elliptical shape
-    if (state.configFireBehavior !== 'input') {
-        state.fuelModel = state.fuelCatalog.get(state.fuelKey)
-        state.fuelBed.update(state)
-        state.fuelIgnition.update(state)
-        state.fireBehavior.update(state)
-        // Promote FireBehavior results that are also observed fire behavior inputs
-        state.headingSpreadRate = state.fireBehavior.headingSpreadRate
-        state.flameLength = state.fireBehavior.flameLength
-        state.headingFromNorth = state.fireBehavior.headingFromNorth
-        state.lengthWidthRatio = state.fireBehavior.lengthWidthRatio
-    } else {
-        // state params must specify headingSpreadRate, headingFromNorth, flameLength, and lengthWidthRatio
-        state.fireBehavior.update(state)
+export class SimpleState {
+    constructor(params=null) {
+        this.#initClasses()
+        if (params) this.update(params)
     }
-    // Process fire distance and location at specific elapsed time and angle
-    state.fireShape.update(state)
-    state.fireSize.update(state)
-    state.headVector.update(state)
-    state.backVector.update(state)
-    state.beta5Vector.update(state)
-    state.beta6Vector.update(state)
-    state.psiVector.update(state)
-}
-
-export function displayState(state) {
-    function setVector(vectorRef, vector) {
-        let {spreadRate, bearing, angleFromHead, distance, flameLength, east, north} = vectorRef
-        return {vector, angleFromHead: fmt(angleFromHead),
-            bearing: fmt(bearing), spreadRate: fmt(spreadRate),
-            distance: fmt(distance), flameLength: fmt(flameLength), east: fmt(east), north: fmt(north)}
+    #initClasses() {
+        this.params = {}
+        this.fuelCatalog = new FuelModelCatalog()
+        this.fuelModel = null
+        this.fuelBed = new FuelBed()
+        this.fuelIgnition = new FuelIgnition()
+        this.fireBehavior = new FireBehavior()
+        this.fireShape = new FireShape()
+        this.fireSize = new FireSize()
+        this.headVector = new FireVectorHead()
+        this.backVector = new FireVectorBack()
+        this.beta5Vector = new FireVectorBeta()
+        this.beta6Vector = new FireVectorBeta6()
+        this.psiVector = new FireVectorPsi()
     }
 
-    console.table([
-        {name: 'head spread rate (ft/min)', value: fmt(state.headingSpreadRate)},
-        {name: 'heading from north (deg)', value: fmt(state.headingFromNorth)},
-        {name: 'head flame length (ft)', value: fmt(state.flameLength)},
-        {name: 'length-to-width ratio', value: fmt(state.lengthWidthRatio)},
-        {name: 'elapsed time (min)', value: fmt(state.elapsedTime)},
-        {name: 'fire ellipse length (ft)', value: fmt(state.fireSize.length)},
-        {name: 'fire ellipse width (ft)', value: fmt(state.fireSize.width)},
-        {name: 'fire ellipse size (ac)', value: fmt(state.fireSize.acres)},
-    ])
+    update(params) {
+        // Store a *copy* of the params
+        this.params = {...params}
 
-    // Accumulate results in a table
-    console.table([
-        setVector(state.headVector, 'head'),
-        setVector(state.backVector, 'back'),
-        setVector(state.beta5Vector, 'beta5'),
-        setVector(state.beta6Vector, 'beta6'),
-        setVector(state.psiVector, 'psi'),
-    ])
+        // Get the requested fuel model by number or alpha code:
+        this.fuelModel = this.fuelCatalog.get(params.fuelKey)
+
+        // Condition the fuel bed with current cured fuel fractions:
+        this.fuelBed.update({fuelModel: this.fuelModel, ...params})
+
+        // Apply effects of fuel moisture on fuel bed ignition process:
+        this.fuelIgnition.update({fuelBed: this.fuelBed, ...params})
+
+        // Apply the effects of wind and slope to the fuel bed's fire behavior:
+        this.fireBehavior.update({fuelIgnition: this.fuelIgnition, ...params})
+
+        // Determine fire's elliptical shape from fire spread rate, bearing, andl/w ratio
+        this.fireShape.update({fireBehavior: this.fireBehavior, ...params})
+        
+        // Determine the fire spread distance, size, and location
+        this.fireSize.update({fireShape: this.fireShape, ...params})
+
+        // Determine the fire spread rate, distance, and intensity from the *ignition point*
+        // at some angle from the fire head:
+        this.headVector.update({fireSize: this.fireSize})
+        this.backVector.update({fireSize: this.fireSize})
+        this.beta5Vector.update({fireSize: this.fireSize, ...params})
+        this.beta6Vector.update({fireSize: this.fireSize, ...params})
+
+        // Determine the fire spread rate, distance, and intensity from a "fire front"
+        // at some angle from the fire head:
+        this.psiVector.update({fireSize: this.fireSize, ...params})
+    }
+
+    display() {
+        console.table([
+            {name: 'head spread rate', value: fmt(this.fireBehavior.headingSpreadRate), units: 'ft/min'},
+            {name: 'heading from north', value: fmt(this.fireBehavior.headingFromNorth), units: 'deg'},
+            {name: 'head flame length', value: fmt(this.fireBehavior.flameLength), units: 'ft'},
+            {name: 'length-to-width ratio', value: fmt(this.fireBehavior.lengthWidthRatio), units: 'dl'},
+            {name: 'elapsed time', value: fmt(this.params.elapsedTime), units: 'min'},
+            {name: 'fire ellipse length', value: fmt(this.fireSize.length), units: 'ft'},
+            {name: 'fire ellipse width', value: fmt(this.fireSize.width), units: 'ft'},
+            {name: 'fire ellipse size', value: fmt(this.fireSize.acres), units: 'ac'},
+        ])
+        
+        // Accumulate results in a table
+        console.table([
+            fmtVector(this.headVector, 'head'),
+            fmtVector(this.backVector, 'back'),
+            fmtVector(this.beta5Vector, 'beta5'),
+            fmtVector(this.beta6Vector, 'beta6'),
+            fmtVector(this.psiVector, 'psi'),
+        ])
+    }
 }
-
-function fmt(v) { return Math.trunc(100*v)/100 }
 
 // ------------------------------------------------------
 
 const start = performance.now()
-updateState(stateParams)
+const state = new SimpleState(simpleStateParams)
 const stop = performance.now()
-displayState(stateParams)
+
+state.display()
 console.log(`simpleState.js elapsed time: ${fmt(stop-start)} msec`)

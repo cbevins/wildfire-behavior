@@ -17,7 +17,7 @@ describe('FireShape and FireSize Class', () => {
             const fuelIgnition = new FuelIgnition({fuelBed, ...Bp.fuelMoisture})
             const fireBehavior = new FireBehavior({fuelIgnition, ...Bp.windSlope, ...Bp.options})
             
-            const fireShape = new FireShape(fireBehavior)   // NOTE: fireBehavior IS an object
+            const fireShape = new FireShape({fireBehavior})   // NOTE: fireBehavior IS an object
             for(let [prop, values] of Object.entries(bpFireShape)) {
                 console.log(`Fuel Model ${fuel[idx]} prop ${prop} expect ${values[0]} received ${fireShape[prop]}`)
                 expect(fireShape[prop]).parts(values[idx], ppb)
