@@ -4,11 +4,11 @@ for all 13 Anderson and 40 Scott & Burgan fuel models
 under a set of curing, moisture, wind, and slope conditions.
 */
 import { FuelModelCatalog, FuelBed, FuelIgnition, FireBehavior } from '#lib/index.js'
-import { fmt, fmtVector } from './utils.js'
+import { fmt } from './utils.js'
 
 const initialParams = {
     // Updating the FuelBed
-    curedHerb: -1 ,
+    curedHerb: 0,
     // Updating the FuelIgnition
     moistureDead1h: 0.1,
     moistureDead10h: 0.1,
@@ -30,22 +30,20 @@ export class FuelModelFireTable {
         if (params) this.update(params)
     }
     #initClasses() {
-        this.params = {}
+        this.params = initialParams
         this.fuelCatalog = new FuelModelCatalog()
-        this.fuelIgnition = new FuelIgnition()
-        this.fireBehavior = new FireBehavior()
-
-        this.fuelModels = []
-        this.fuelBeds = []
+        this.fbfm = []
         for (let fuelKey of this.fuelCatalog.getNumberKeys()) {
             if (this.fuelCatalog.isBurnable(fuelKey)) {
+                const isCurable = this.fuelCatalog.isCurable(fuelKey)
                 const fuelModel = this.fuelCatalog.get(fuelKey)
                 const fuelBed = new FuelBed({fuelModel, ...initialParams})
-                this.fuelModels.push(fuelModel)     // Array of references to FuelModels
-                this.fuelBeds.push(fuelBed)
+                const fuelIgnition = new FuelIgnition({fuelBed, ...initialParams})
+                const fireBehavior = new FireBehavior({fuelIgnition, ...initialParams})
+                this.fbfm.push({fuelKey, isCurable, fuelModel, fuelBed, fuelIgnition, fireBehavior})
             }
         }
-        this.update(initialParams)
+        this.update(this.params)
     }
 
     isChanged(props) {
@@ -59,26 +57,24 @@ export class FuelModelFireTable {
         this.prevParams = this.params
         this.params = params
         const results = []
-        for (let fuelBed of this.fuelBeds) {
+        for (const {isCurable, fuelModel, fuelBed, fuelIgnition, fireBehavior} of this.fbfm) {
             let changed = false
-            // Did the fuel curing fraction change
-            if (this.isChanged(['curedHerb'])) {
-                fuelBed.update({fuelModel: fuelBed.fuelModel, ...params})
+            if (isCurable && this.isChanged(['curedHerb'])) {
+                fuelBed.update({fuelModel, ...params})
                 changed = true
             }
             if (changed || this.isChanged(['moistureDead1h', 'moistureDead10h', 'moistureDead100h',
                 'moistureLiveHerb', 'moistureLiveStem'])) {
-                this.fuelIgnition.update({fuelBed, ...params})
+                fuelIgnition.update({fuelBed, ...params})
                 changed = true
             }
             if (changed || this.isChanged(['midflameWindSpeed', 'windBearing', 'slopeRatio', 'aspect'])) {
-                this.fireBehavior.update({fuelIgnition: this.fuelIgnition, ...params})
+                fireBehavior.update({fuelIgnition, ...params})
             }
 
-            const {fuelModel} = fuelBed
             const {number, code} = fuelModel
-            const {headingSpreadRate, flameLength} = this.fireBehavior
-            results.push({number, code, headingSpreadRate, flameLength})
+            const {headingSpreadRate, flameLength} = fireBehavior
+            results.push({number: fmt(number), code, ros: fmt(headingSpreadRate), flame: fmt(flameLength)})
         }
         return results
     }
@@ -87,8 +83,15 @@ export class FuelModelFireTable {
 // ------------------------------------------------------
 
 const start = performance.now()
+
 const fmft = new FuelModelFireTable()
-const results = fmft.update(initialParams)
+let results = fmft.update(initialParams)
+console.log('Before', fmft.params)
+console.log('Results Before', results)
+
+results = fmft.update(initialParams)
+console.log('After', fmft.params)
+console.log('Results After', results)
+
 const stop = performance.now()
-console.log(results)
 console.log(`fuelModelFireTable.js elapsed time: ${fmt(stop-start)} msec`)
