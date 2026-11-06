@@ -154,7 +154,7 @@ describe('FuelBed Class', () => {
 
         fuelBed = new FuelBed({fuelModel, curedHerb: 1})
         expect(fuelBed.moistureClasses.size).toBe(4)
-        expect([...fuelBed.moistureClasses]).toContain('moistureDead1h')
+        expect(fuelBed.moistureClasses.has('moistureDead1h')).toBe(true)
         expect([...fuelBed.moistureClasses]).toContain('moistureDead10h')
         expect([...fuelBed.moistureClasses]).toContain('moistureDead100h')
         expect([...fuelBed.moistureClasses]).not.toContain('moistureLiveHerb')

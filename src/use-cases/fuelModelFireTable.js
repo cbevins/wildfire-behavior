@@ -2,6 +2,8 @@
 fuelModelFireTable.js produces a table of heading spread rate, direction, and flame length
 for all 13 Anderson and 40 Scott & Burgan fuel models
 under a set of curing, moisture, wind, and slope conditions.
+
+It also demonstrates some optimizations,
 */
 import { FuelModelCatalog, FuelBed, FuelIgnition, FireBehavior } from '#lib/index.js'
 import { fmt } from './utils.js'
@@ -59,22 +61,34 @@ export class FuelModelFireTable {
         const results = []
         for (const {isCurable, fuelModel, fuelBed, fuelIgnition, fireBehavior} of this.fbfm) {
             let changed = false
+
+            // Update fuelBed only if the curing fraction has changed
             if (isCurable && this.isChanged(['curedHerb'])) {
                 fuelBed.update({fuelModel, ...params})
                 changed = true
             }
-            if (changed || this.isChanged(['moistureDead1h', 'moistureDead10h', 'moistureDead100h',
-                'moistureLiveHerb', 'moistureLiveStem'])) {
+
+            // Update fuelIgnition only if the fuelBed has been updated
+            // or its has a fuel particle whose moisture content has changed
+            if (changed
+                || (fuelBed.moistureClasses.has('moistureDead1h') && this.isChanged(['moistureDead1h']))
+                || (fuelBed.moistureClasses.has('moistureDead10h') && this.isChanged(['moistureDead10h']))
+                || (fuelBed.moistureClasses.has('moistureDead100h') && this.isChanged(['moistureDead100h']))
+                || (fuelBed.moistureClasses.has('moistureLiveStem') && this.isChanged(['moistureLiveStem']))
+                || (fuelBed.moistureClasses.has('moistureLiveHerb') && this.isChanged(['moistureLiveHerb']))) {
                 fuelIgnition.update({fuelBed, ...params})
                 changed = true
             }
+
+            // Update fireBehavior only if fuelBed or fuelIgnition has changed
+            // or if the wind-slope conditions have changed
             if (changed || this.isChanged(['midflameWindSpeed', 'windBearing', 'slopeRatio', 'aspect'])) {
                 fireBehavior.update({fuelIgnition, ...params})
             }
 
             const {number, code} = fuelModel
             const {headingSpreadRate, flameLength} = fireBehavior
-            results.push({number: fmt(number), code, ros: fmt(headingSpreadRate), flame: fmt(flameLength)})
+            results.push({number: fmt(number), code, ros: fmt(headingSpreadRate), flame: fmt(flameLength), changed})
         }
         return results
     }
@@ -85,18 +99,21 @@ export class FuelModelFireTable {
 const start = performance.now()
 
 const fmft = new FuelModelFireTable()
-
-
-let fuelModel = fmft.fuelCatalog.get(101)
-let fuelBed = new FuelBed({fuelModel, curedHerb: 0})
-
 let results = fmft.update(initialParams)
-console.log('Before', fmft.params)
-console.log('Results Before', results)
+// console.log('Before', fmft.params)
+// console.log('Results Before', results)
 
-results = fmft.update(initialParams)
-console.log('After', fmft.params)
-console.log('Results After', results)
+// Change curedHerb
+const params = {...fmft.params}
+params.curedHerb = 0.5
+results = fmft.update(params)
+// console.log('After', fmft.params)
+// console.log('Results After', results)
+let nChanged = 0
+for(let result of results) {
+    if (result.changed) nChanged++
+}
+// console.log('Number of changed results:', nChanged)
 
 const stop = performance.now()
-console.log(`fuelModelFireTable.js elapsed time: ${fmt(stop-start)} msec`)
+// console.log(`fuelModelFireTable.js elapsed time: ${fmt(stop-start)} msec`)
