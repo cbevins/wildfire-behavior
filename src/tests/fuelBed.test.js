@@ -109,4 +109,57 @@ describe('FuelBed Class', () => {
         expect(fuelBed.live.reactionIntensityDry).parts(16957.560830348066, ppb)
         expect(fuelBed.live.savr).parts(1600, ppb)
     })
+
+    it('FuelBed moistureClasses are correct:', () => {
+        let fuelModel, fuelBed
+
+        // FuelModel 101 'gr1' has deah1h and curableHerb
+        fuelModel = catalog.get(101)
+        fuelBed = new FuelBed({fuelModel, curedHerb: 0})
+        expect(fuelBed.moistureClasses.size).toBe(2)
+        expect([...fuelBed.moistureClasses]).toContain('moistureDead1h')
+        expect([...fuelBed.moistureClasses]).toContain('moistureLiveHerb')
+
+        fuelBed.update({fuelModel, curedHerb: 0.5})
+        expect(fuelBed.moistureClasses.size).toBe(2)
+        expect([...fuelBed.moistureClasses]).toContain('moistureDead1h')
+        expect([...fuelBed.moistureClasses]).toContain('moistureLiveHerb')
+
+        fuelBed.update({fuelModel, curedHerb: 1})
+        expect(fuelBed.moistureClasses.size).toBe(1)
+        expect([...fuelBed.moistureClasses]).toContain('moistureDead1h')
+        expect([...fuelBed.moistureClasses]).not.toContain('moistureLiveHerb')
+
+        // FuelModel 1 'gr1' has just deah1h
+        fuelModel = catalog.get(1)
+        fuelBed = new FuelBed({fuelModel, curedHerb: 0})
+        expect(fuelBed.moistureClasses.size).toBe(1)
+        expect([...fuelBed.moistureClasses]).toContain('moistureDead1h')
+        expect([...fuelBed.moistureClasses]).not.toContain('moistureLiveHerb')
+
+        // FuelModel 99 'nb9' has no fuels
+        fuelModel = catalog.get(99)
+        fuelBed = new FuelBed({fuelModel, curedHerb: 0})
+        expect(fuelBed.moistureClasses.size).toBe(0)
+
+        // FuelModel 163 'tu3' has all 5 fuels
+        fuelModel = catalog.get(163)
+        fuelBed = new FuelBed({fuelModel, curedHerb: 0})
+        expect(fuelBed.moistureClasses.size).toBe(5)
+        expect([...fuelBed.moistureClasses]).toContain('moistureDead1h')
+        expect([...fuelBed.moistureClasses]).toContain('moistureDead10h')
+        expect([...fuelBed.moistureClasses]).toContain('moistureDead100h')
+        expect([...fuelBed.moistureClasses]).toContain('moistureLiveHerb')
+        expect([...fuelBed.moistureClasses]).toContain('moistureLiveStem')
+
+        fuelBed = new FuelBed({fuelModel, curedHerb: 1})
+        expect(fuelBed.moistureClasses.size).toBe(4)
+        expect([...fuelBed.moistureClasses]).toContain('moistureDead1h')
+        expect([...fuelBed.moistureClasses]).toContain('moistureDead10h')
+        expect([...fuelBed.moistureClasses]).toContain('moistureDead100h')
+        expect([...fuelBed.moistureClasses]).not.toContain('moistureLiveHerb')
+        expect([...fuelBed.moistureClasses]).toContain('moistureLiveStem')
+
+    })
+
 })

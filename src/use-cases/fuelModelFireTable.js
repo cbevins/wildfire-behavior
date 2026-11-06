@@ -85,6 +85,11 @@ export class FuelModelFireTable {
 const start = performance.now()
 
 const fmft = new FuelModelFireTable()
+
+
+let fuelModel = fmft.fuelCatalog.get(101)
+let fuelBed = new FuelBed({fuelModel, curedHerb: 0})
+
 let results = fmft.update(initialParams)
 console.log('Before', fmft.params)
 console.log('Results Before', results)

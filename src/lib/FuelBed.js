@@ -28,6 +28,7 @@ export const FuelBedProps = [
     {key: 'savr15', type: 'factor', init: 0, desc: ''},
     {key: 'windC', type: 'factor', init: 0, desc: ''},
     {key: 'windE', type: 'factor', init: 0, desc: ''},
+    {key: 'moistureClasses', type: 'Set', init: null, desc: 'Set of all (dead and live) referenced moisture classes.'}
 ]
 
 export class FuelBed {
@@ -72,6 +73,7 @@ export class FuelBed {
         dead.mext = fuelModel.deadMext
         const live = new FuelBedLife('live', params)
         live.mext = 5   // will be re-determined by the parent FuelBed
+        const moistureClasses = new Set([...dead.moistureClasses, ...live.moistureClasses])
 
         // Accumulate fuel bed total surface area (ft2), ovendry load (lb/ft2), and volume (ft3)
         const ovendryLoad = dead.ovendryLoad + live.ovendryLoad
@@ -207,6 +209,7 @@ export class FuelBed {
         this.savr15 = savr15
         this.windC = windC
         this.windE = windE
+        this.moistureClasses = moistureClasses
         return this
     }
 }
@@ -222,6 +225,7 @@ export const FuelBedLifeProps = [
     {key: 'volume', type: '', init: 0, desc: ''},
     {key: 'heat', type: 'fuelHeat', init: 0, desc: ''},
     {key: 'mineralDamping', type: 'fraction', init: 0, desc: ''},
+    {key: 'moistureClasses', type: 'Set', init: null, desc: 'Set of all moistureClasses referenced by this category.'}
 ]
 /**
  * The FuelBedLife class converts Fuel Model parameters into a 'dead' or 'live'
@@ -237,6 +241,7 @@ export class FuelBedLife {
     #init() {
         for(let {key, init} of FuelBedLifeProps)
             this[key] = init
+        this.moistureClasses = new Set()
         return this
     }
 
@@ -275,7 +280,7 @@ export class FuelBedLife {
                 }
                 const ovendryLoad = loadFraction * particle.ovendryLoad
                 lifeOvendryLoad += ovendryLoad
-
+                    
                 // Determine particle's surface area (ft2) and accumulate it over this life category
                 const surfaceArea = (particle.density > 0) ? (ovendryLoad * particle.savr) / particle.density : 0
                 lifeSurfaceArea += surfaceArea
@@ -300,6 +305,9 @@ export class FuelBedLife {
 
                 // Determine particle's moisture class
                 const moistureClass = (category === "dead") ? particle.deadMoistureClass : particle.liveMoistureClass
+
+                // If there is any fuel load, store the particle moisture class
+                if (ovendryLoad > 0) this.moistureClasses.add(moistureClass)
 
                 // Particle 'effective heating number' is the fraction of the fuel particle load
                 // that participates in the fire ignition and spread process. 

@@ -7,7 +7,6 @@ expect.extend({ parts })
 describe('FuelModelFireTable use-case', () => {
     it(`Constructs initial state:`, () => {
         const fmft = new FuelModelFireTable()
-        expect(fmft.fuelModels.length).toBe(53)
-        expect(fmft.fuelBeds.length).toBe(53)
+        expect(fmft.fbfm.length).toBe(53)
     })
 })
