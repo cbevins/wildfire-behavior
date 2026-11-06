@@ -616,13 +616,4 @@ export const FuelModels = [
             dead100h(0.24104683195592286),
         ],
     ),
-    model( 301, "crown", "CROWN", "Crown canopy fuel",
-        "Crown canopy fuel model used by Rothermel`s crown fire spread rate model.",
-        1, 0.25, [
-            dead1h(0.138, 2000, 8000),
-            dead10h(0.092),
-            dead100h(0.23),
-            liveStem(0.092, 1500),
-        ],
-    ),
 ]

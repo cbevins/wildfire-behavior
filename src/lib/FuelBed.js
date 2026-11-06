@@ -4,13 +4,13 @@ export const FuelBedProps = [
     {key: 'fuelModel', type: 'object', init: null, desc: 'Reference to a FuelModel'},
     {key: 'depth', type: 'fuelDepth', init: 1, desc: ''},
     {key: 'deadMext', type: 'fuelMoisture', init: 0.15, desc: ''},
-    {key: 'dead', type: 'object', init: {}, desc: 'Dead category FuelBedLife'},
-    {key: 'live', type: 'object', init: {}, desc: 'Live category FuelBedLife'},
-    {key: 'savr', type: 'surfaceAreaToVolumeRatio', init: 0, desc: ''},
+    {key: 'dead', type: 'FuelBedLife', init: {}, desc: 'Reference to the dead category FuelBedLife'},
+    {key: 'live', type: 'FuelBedLife', init: {}, desc: 'Reference to the live category FuelBedLife'},
+    {key: 'savr', type: 'fuelSavr', init: 0, desc: ''},
     {key: 'packingRatio', type: 'ratio', init: 0, desc: ''},
     {key: 'propagatingFluxRatio', type: 'ratio', init: 0, desc: ''},
     {key: 'liveMextFactor', type: 'factor', init: 0, desc: ''},
-    {key: 'bulkDensity', type: 'density', init: 0, desc: ''},
+    {key: 'bulkDensity', type: 'bulkDensity', init: 0, desc: ''},
     {key: 'residenceTime', type: 'fireTime', init: 0, desc: ''},
     {key: 'slopeK', type: 'factor', init: 0, desc: ''},
     {key: 'windB', type: 'factor', init: 0, desc: ''},
@@ -35,8 +35,8 @@ export class FuelBed {
      * Returns a FuelBed with any curable fuels apportioned to their respective dead and live classes.
      * @param {object} params An object with at least the following properties:
      *  fuelModel: a reference to a FuelModel as returned by FuelModelCatalog::get()
-     *  curedHerb: the cured herb fraction
-     *  <curedOther>: any other cured fuel particle fractions required by a custom fuel model
+     *  curedHerb: the cured herb fraction (required by 17 of the 40 Burgan and Scott fuel models)
+     *  <curedOther>: any other cured fuel particle fractions required by any custom fuel models
      */
     constructor(params=null) {
         if (params)
@@ -48,6 +48,8 @@ export class FuelBed {
     #init() {
         for(let {key, init} of FuelBedProps)
             this[key] = init
+        this.dead = new FuelBedLife('dead')
+        this.live = new FuelBedLife('live')
         return this
     }
 
@@ -227,9 +229,9 @@ export const FuelBedLifeProps = [
  * in the section titled 'Formulation of Fire Spread Model'.
  */
 export class FuelBedLife {
-    constructor(category, params) {
+    constructor(category, params=null) {
         this.#init()
-        this.#update(category, params)
+        if (params) this.#update(category, params)
     }
     
     #init() {
