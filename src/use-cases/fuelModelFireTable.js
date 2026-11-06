@@ -57,7 +57,7 @@ export class FuelModelFireTable {
 
     update(params) {
         this.prevParams = this.params
-        this.params = params
+        this.params = {...params}
         const results = []
         for (const {isCurable, fuelModel, fuelBed, fuelIgnition, fireBehavior} of this.fbfm) {
             let changed = false
@@ -95,25 +95,52 @@ export class FuelModelFireTable {
 }
 
 // ------------------------------------------------------
-
-const start = performance.now()
-
-const fmft = new FuelModelFireTable()
-let results = fmft.update(initialParams)
-// console.log('Before', fmft.params)
-// console.log('Results Before', results)
-
-// Change curedHerb
-const params = {...fmft.params}
-params.curedHerb = 0.5
-results = fmft.update(params)
-// console.log('After', fmft.params)
-// console.log('Results After', results)
-let nChanged = 0
-for(let result of results) {
-    if (result.changed) nChanged++
+function changed(results) {
+    let nChanged = 0
+    for(let result of results) {
+        if (result.changed) nChanged++
+    }
+    return nChanged
 }
-// console.log('Number of changed results:', nChanged)
 
-const stop = performance.now()
-// console.log(`fuelModelFireTable.js elapsed time: ${fmt(stop-start)} msec`)
+function example() {
+    const start = performance.now()
+
+    const fmft = new FuelModelFireTable()
+    // let results = fmft.update(initialParams)
+    // console.log('Initial Params', fmft.params)
+    // console.log('Initial Results', results)
+
+    // Change curedHerb
+    const params = {...fmft.params}
+    params.curedHerb = 0.5
+    let results = fmft.update(params)
+    console.log('After curedHerb=0.5', fmft.params)
+    console.log('Results After', results)
+    console.log('Number of FuelBeds changed by curedHerb:', changed(results))
+
+    params.moistureDead100h = 0.09
+    results = fmft.update(params)
+    console.log('Number of FuelBeds changed by moistureDead100h:', changed(results))
+
+    params.moistureDead10h = 0.07
+    results = fmft.update(params)
+    console.log('Number of FuelBeds changed by moistureDead10h:', changed(results))
+
+    params.moistureDead1h = 0.05
+    results = fmft.update(params)
+    console.log('Number of FuelBeds changed by moistureDead1h:', changed(results))
+
+    params.moistureLiveHerb = 0.5
+    results = fmft.update(params)
+    console.log('Number of FuelBeds changed by moistureLiveHerb:', changed(results))
+
+    params.moistureLiveStem = 1.5
+    results = fmft.update(params)
+    console.log('Number of FuelBeds changed by moistureLiveStem:', changed(results))
+
+    const stop = performance.now()
+    console.log(`fuelModelFireTable.js elapsed time: ${fmt(stop-start)} msec`)
+}
+
+example()

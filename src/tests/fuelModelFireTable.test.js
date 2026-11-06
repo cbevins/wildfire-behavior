@@ -117,8 +117,62 @@ describe('FuelModelFireTable use-case', () => {
         expect(obj[2].changed).toBe(true)
         expect(obj.gs1.changed).toBe(true)
     })
-    
-    it(`produces results that aree with BP5 and BP6:`, () => {
+
+    it(`results cascade:`, () => {
+        let params, results, obj
+        // Create the class an get a *COPY* of the parameters to modify
+        const fmft = new FuelModelFireTable()
+        params = {...fmft.params}
+
+        params.curedHerb = 0.5
+        results = fmft.update(params)
+        obj = toObject(results)
+
+        expect(changeCount(results)).toBe(17)
+        expect(obj[1].changed).toBe(false)
+        expect(obj.gr1.changed).toBe(true)
+        expect(obj.tu4.changed).toBe(false)
+        params.moistureDead100h = 0.09
+        results = fmft.update(params)
+        obj = toObject(results)
+
+        expect(changeCount(results)).toBe(32)
+        expect(obj[1].changed).toBe(false)
+        expect(obj[2].changed).toBe(true)
+
+        params.moistureDead10h = 0.07
+        results = fmft.update(params)
+        obj = toObject(results)
+        expect(changeCount(results)).toBe(43)
+        expect(obj[1].changed).toBe(false)
+        expect(obj[2].changed).toBe(true)
+
+        params.moistureDead1h = 0.05
+        results = fmft.update(params)
+        obj = toObject(results)
+        expect(changeCount(results)).toBe(53)
+        expect(obj[1].changed).toBe(true)
+        expect(obj[2].changed).toBe(true)
+
+        params.moistureLiveHerb = 0.5
+        results = fmft.update(params)
+        obj = toObject(results)
+        expect(changeCount(results)).toBe(17)
+        expect(obj[1].changed).toBe(false)
+        expect(obj.gr1.changed).toBe(true)
+        expect(obj.tu4.changed).toBe(false)
+
+        params.moistureLiveStem = 1.5
+        results = fmft.update(params)
+        obj = toObject(results)
+        expect(changeCount(results)).toBe(23)
+        expect(obj[1].changed).toBe(false)
+        expect(obj[2].changed).toBe(true)
+        expect(obj.gs1.changed).toBe(true)
+
+    })
+
+    it(`produces results that argee with BP5 and BP6:`, () => {
         const bpParams = {
             // Updating the FuelBed
             curedHerb: 0.778,
@@ -140,7 +194,6 @@ describe('FuelModelFireTable use-case', () => {
         const fmft = new FuelModelFireTable()
         const results = fmft.update(bpParams)
         const obj = toObject(results)
-        console.log(obj)
         expect(obj[10].ros).toBe(18.55)
         expect(obj[10].flame).toBe(6.99)
     })
