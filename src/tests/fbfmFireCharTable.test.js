@@ -1,7 +1,7 @@
-import { FuelModelFireTable } from '../use-cases/fuelModelFireTable.js'
+import { FbfmFireCharTable } from '../use-cases/fbfmFireCharTable.js'
 
 import { describe, it, expect } from 'vitest'
-import { parts, ppb, ppm, ppt } from './assertions.js'
+import { parts } from './assertions.js'
 expect.extend({ parts })
 
 function toObject(results) {
@@ -19,16 +19,16 @@ function changeCount(results) {
     return nChanged
 }
 
-describe('FuelModelFireTable use-case', () => {
+describe('FbfmFireCharTable use-case', () => {
     it(`Constructs initial state:`, () => {
-        const fmft = new FuelModelFireTable()
+        const fmft = new FbfmFireCharTable()
         expect(fmft.fbfm.length).toBe(53)
     })
 
     it(`changes just dynamic fuel models when curedHerb changes:`, () => {
         let params, results, obj
         // Create the class an get a *COPY* of the parameters to modify
-        const fmft = new FuelModelFireTable()
+        const fmft = new FbfmFireCharTable()
         params = {...fmft.params}
 
         params.curedHerb = 0.5
@@ -44,7 +44,7 @@ describe('FuelModelFireTable use-case', () => {
     it(`changes just fuel models with dead100h when moistureDead100h changes:`, () => {
         let params, results, obj
         // Create the class an get a *COPY* of the parameters to modify
-        const fmft = new FuelModelFireTable()
+        const fmft = new FbfmFireCharTable()
         params = {...fmft.params}
 
         params.moistureDead100h = 0.09
@@ -59,7 +59,7 @@ describe('FuelModelFireTable use-case', () => {
     it(`changes just fuel models with dead10h when moistureDead10h changes:`, () => {
         let params, results, obj
         // Create the class an get a *COPY* of the parameters to modify
-        const fmft = new FuelModelFireTable()
+        const fmft = new FbfmFireCharTable()
         params = {...fmft.params}
 
         params.moistureDead10h = 0.07
@@ -74,7 +74,7 @@ describe('FuelModelFireTable use-case', () => {
     it(`changes just fuel models with dead1h when moistureDead10h changes:`, () => {
         let params, results, obj
         // Create the class an get a *COPY* of the parameters to modify
-        const fmft = new FuelModelFireTable()
+        const fmft = new FbfmFireCharTable()
         params = {...fmft.params}
 
         params.moistureDead1h = 0.05
@@ -89,7 +89,7 @@ describe('FuelModelFireTable use-case', () => {
     it(`changes just fuel models with curableHerb when moistureLiveHerb changes:`, () => {
         let params, results, obj
         // Create the class an get a *COPY* of the parameters to modify
-        const fmft = new FuelModelFireTable()
+        const fmft = new FbfmFireCharTable()
         params = {...fmft.params}
 
         params.moistureLiveHerb = 0.5
@@ -105,7 +105,7 @@ describe('FuelModelFireTable use-case', () => {
     it(`changes just fuel models with liveStem when moistureLiveStem changes:`, () => {
         let params, results, obj
         // Create the class an get a *COPY* of the parameters to modify
-        const fmft = new FuelModelFireTable()
+        const fmft = new FbfmFireCharTable()
         params = {...fmft.params}
 
         params.moistureLiveStem = 1.5
@@ -121,7 +121,7 @@ describe('FuelModelFireTable use-case', () => {
     it(`results cascade:`, () => {
         let params, results, obj
         // Create the class an get a *COPY* of the parameters to modify
-        const fmft = new FuelModelFireTable()
+        const fmft = new FbfmFireCharTable()
         params = {...fmft.params}
 
         params.curedHerb = 0.5
@@ -191,7 +191,7 @@ describe('FuelModelFireTable use-case', () => {
             limitSpreadRateToWindSpeed: true,
         }
         // Create the class an get a *COPY* of the parameters to modify
-        const fmft = new FuelModelFireTable()
+        const fmft = new FbfmFireCharTable()
         const results = fmft.update(bpParams)
         const obj = toObject(results)
         expect(obj[10].ros).toBe(18.55)

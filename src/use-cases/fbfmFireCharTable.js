@@ -1,9 +1,21 @@
 /**
-fuelModelFireTable.js produces a table of heading spread rate, direction, and flame length
-for all 13 Anderson and 40 Scott & Burgan fuel models
+fbfmFireCharTable.js produces a table of heading spread rate, direction, and flame length
+for the 53 'standard' fire behavior fuel models (13 per Anderson and 40 per Scott & Burgan)
 under a set of curing, moisture, wind, and slope conditions.
 
+The table is suitable for creating a 'fire behavior characteristics chart', where each
+fuel model is plotted on a chart with fire spread rate on the x-axis and
+flame length on the y-axis.
+
 It also demonstrates some optimizations,
+- The FuelModel - FuelBed pairs are pre-constructued for all 53 fuel models.
+- The fbfmFireCharTable instance keeps a copy of the current input parameters.
+- fuelBed.update() is only called if the FuelModel has curable herb
+    and the 'curedHerb' input parameter has changed.
+- fuelIgnition.update() is only called when the fuel model moisture content input
+parameter has changed for one (or more) of its existing fuel moisture classes.
+- fireBehavior.update() is only called if one of the wind speed, direction, slope,
+    or aspect input parameters have changed.
 */
 import { FuelModelCatalog, FuelBed, FuelIgnition, FireBehavior } from '#lib/index.js'
 import { fmt } from './utils.js'
@@ -26,7 +38,7 @@ const initialParams = {
     limitSpreadRateToWindSpeed: true,
 }
 
-export class FuelModelFireTable {
+export class FbfmFireCharTable {
     constructor(params=null) {
         this.#initClasses()
         if (params) this.update(params)
@@ -63,6 +75,7 @@ export class FuelModelFireTable {
             let changed = false
 
             // Update fuelBed only if the curing fraction has changed
+            // Only 17 of the 53 standard FBFM have curable fuel.
             if (isCurable && this.isChanged(['curedHerb'])) {
                 fuelBed.update({fuelModel, ...params})
                 changed = true
@@ -71,17 +84,22 @@ export class FuelModelFireTable {
             // Update fuelIgnition only if the fuelBed has been updated
             // or its has a fuel particle whose moisture content has changed
             if (changed
-                || (fuelBed.moistureClasses.has('moistureDead1h') && this.isChanged(['moistureDead1h']))
-                || (fuelBed.moistureClasses.has('moistureDead10h') && this.isChanged(['moistureDead10h']))
-                || (fuelBed.moistureClasses.has('moistureDead100h') && this.isChanged(['moistureDead100h']))
-                || (fuelBed.moistureClasses.has('moistureLiveStem') && this.isChanged(['moistureLiveStem']))
-                || (fuelBed.moistureClasses.has('moistureLiveHerb') && this.isChanged(['moistureLiveHerb']))) {
+                    // All 53 standard FBFM utilize the 1-h dead fuel moisture
+                    || (fuelBed.moistureClasses.has('moistureDead1h') && this.isChanged(['moistureDead1h']))
+                    // 43 standard FBFM utilize the 1-0h dead fuel moisture
+                    || (fuelBed.moistureClasses.has('moistureDead10h') && this.isChanged(['moistureDead10h']))
+                    // 32 standard FBFM utilize the 100-h dead fuel moisture
+                    || (fuelBed.moistureClasses.has('moistureDead100h') && this.isChanged(['moistureDead100h']))
+                    // 17 standard FBFM utilize the live herb fuel moisture
+                    || (fuelBed.moistureClasses.has('moistureLiveHerb') && this.isChanged(['moistureLiveHerb']))
+                    // 23 standard FBFM utilize the live stem fuel moisture
+                    || (fuelBed.moistureClasses.has('moistureLiveStem') && this.isChanged(['moistureLiveStem']))) {
                 fuelIgnition.update({fuelBed, ...params})
                 changed = true
             }
 
             // Update fireBehavior only if fuelBed or fuelIgnition has changed
-            // or if the wind-slope conditions have changed
+            // or if any of the wind-slope input parameters have changed
             if (changed || this.isChanged(['midflameWindSpeed', 'windBearing', 'slopeRatio', 'aspect'])) {
                 fireBehavior.update({fuelIgnition, ...params})
             }
@@ -106,7 +124,7 @@ function changed(results) {
 function example() {
     const start = performance.now()
 
-    const fmft = new FuelModelFireTable()
+    const fmft = new FbfmFireCharTable()
     // let results = fmft.update(initialParams)
     // console.log('Initial Params', fmft.params)
     // console.log('Initial Results', results)
@@ -140,7 +158,7 @@ function example() {
     console.log('Number of FuelBeds changed by moistureLiveStem:', changed(results))
 
     const stop = performance.now()
-    console.log(`fuelModelFireTable.js elapsed time: ${fmt(stop-start)} msec`)
+    console.log(`fbfmFireCharTable.js elapsed time: ${fmt(stop-start)} msec`)
 }
 
 example()
