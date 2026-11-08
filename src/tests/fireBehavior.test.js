@@ -32,7 +32,6 @@ describe('FireBehavior Class', () => {
         expect(fireBehavior.scorchHeight(95)).parts(39.580182, ppm)
     })
 
-
     it('Fuel Model 124 FireBehavior properties match BehavePlus v5 and v6 beta:', () => {
         const fuelModel = catalog.get(124)
         const fuelBed = new FuelBed({fuelModel, curedHerb: Bp.fuelCuring.curedHerb})

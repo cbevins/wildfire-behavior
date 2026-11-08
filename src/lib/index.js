@@ -8,3 +8,4 @@ export { FireVectorBack, FireVectorBeta, FireVectorBetaAtLeftFlank, FireVectorBe
 export { FuelBed } from './FuelBed.js'
 export { FuelIgnition } from './FuelIgnition.js'
 export { FuelModelCatalog } from './FuelModelCatalog.js'
+export { ActiveCrownFireFuelBed, ActiveCrownFireFuelIgnition, ActiveCrownFireBehavior } from './ActiveCrownFire.js'
