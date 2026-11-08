@@ -72,6 +72,7 @@ export class FbfmFireCharTable {
         this.params = {...params}
         const results = []
         for (const {isCurable, fuelModel, fuelBed, fuelIgnition, fireBehavior} of this.fbfm) {
+            const {number, code} = fuelModel
             let changed = false
 
             // Update fuelBed only if the curing fraction has changed
@@ -104,7 +105,6 @@ export class FbfmFireCharTable {
                 fireBehavior.update({fuelIgnition, ...params})
             }
 
-            const {number, code} = fuelModel
             const {headingSpreadRate, flameLength} = fireBehavior
             results.push({number: fmt(number), code, ros: fmt(headingSpreadRate), flame: fmt(flameLength), changed})
         }
