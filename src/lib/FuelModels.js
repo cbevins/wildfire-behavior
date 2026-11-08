@@ -617,3 +617,15 @@ export const FuelModels = [
         ],
     ),
 ]
+
+export const CrownFireFuelModel =
+    model( 255, "crown", "Rothermel", "Crown fire fuels",
+        "Used by Rothermel to predict crown fire spread rate (same as fuel model '10')",
+        1, 0.25, [
+            dead1h(0.138, 2000, 8000),
+            dead10h(0.092),
+            dead100h(0.23),
+            liveStem(0.092, 1500),
+        ],
+    )
+
