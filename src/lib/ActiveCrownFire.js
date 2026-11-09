@@ -3,14 +3,14 @@ import { FuelIgnition } from './FuelIgnition.js'
 import { FireBehavior } from './FireBehavior.js'
 import { CrownFireFuelModel } from "./FuelModels.js"
 
-export class ActiveCrownFireFuelBed extends FuelBed {
+export class CanopyFuelBed extends FuelBed {
     constructor() {
         super({fuelModel: CrownFireFuelModel, curedHerb: 0})
     }
 }
 
 // params must have {fuelBed, moistureDead1h, etc}
-export class ActiveCrownFireFuelIgnition extends FuelIgnition {
+export class CanopyFuelIgnition extends FuelIgnition {
     constructor(params=null) {
         super(params)
     }
@@ -35,7 +35,7 @@ export const ActiveCrownFireBehaviorProps = [
 export class ActiveCrownFireBehavior {
     constructor(params=null) {
         this.#init()
-        this.fireBehavior = new FireBehavior()
+        this.fireBehavior = new FireBehavior()  // used only for crown fire spread rate and hpua
         if (params) this.update(params)
     }
 
@@ -46,7 +46,7 @@ export class ActiveCrownFireBehavior {
 
     // MUST have fuelIgnition, windSpeed20ft, canopyBulkDensity, canopyLength (canopyHeatConetnt is optional)
     checkParams(params) {
-        for(let prop of ['fuelIgnition', 'windSpeed20ft', 'canopyBulkDensity', 'canopyLength']) {
+        for(let prop of ['fireBehavior', 'canopyFuelIgnition', 'windSpeed20ft', 'canopyBulkDensity', 'canopyLength']) {
             if (! Object.hasOwn(params, prop))
                 throw new Error(`ActiveCrownFireBehavior.update(params) requires a 'params.${prop}' property`)
         }
@@ -55,14 +55,19 @@ export class ActiveCrownFireBehavior {
     update(params) {
         this.checkParams(params)
         // Alternatively, assign defaults of zero
-        const {windSpeed20ft=0, canopyLength=0, canopyBulkDensity=0, canopyHeatContent=8000} = params
+        const {
+            fireBehavior,       // reference to the **surface** fuel FireBehavior object (for its 'heatPerUnitArea')
+            canopyFuelIgnition,  // reference to the **crown** FuelIgnition object to determine canopy spread rate
+            windSpeed20ft=0, canopyLength=0, canopyBulkDensity=0, canopyHeatContent=8000} = params
 
-        // Pass crown-specific properties to FireBehavior.update()
-        this.fireBehavior.update({...params, midflameWindSpeed: windSpeed20ft, slopeRatio: 0, limitWindSpeedFactor: false})
-        
+        // Use the **crown's internal** fuel model 10 to determine active crown fire spread rate
+        // using wind speed at 20-ft and no slope:
+        this.fireBehavior.update({...params, fuelIgnition: canopyFuelIgnition,
+            midflameWindSpeed: windSpeed20ft, slopeRatio: 0, limitWindSpeedFactor: false})
         // Rothermel's crown fire spread rate (ft/min)
         this.headingSpreadRate = 3.34 * this.fireBehavior.headingSpreadRate
 
+        // Need both the **surface** and the **crown** To determine heat per unit area, need both the surface and the crown fuel HPUA
         // Canopy fuel load, HPUA
         this.canopyFuelLoad = canopyBulkDensity * canopyLength
         this.canopyFuelHpua = this.canopyFuelLoad * canopyHeatContent
@@ -70,7 +75,7 @@ export class ActiveCrownFireBehavior {
         // Active crown fire heat per unit area is the sum of the surface fire HPUA
         // and the entire active canopy HPUA (i.e., canopy load * canopy heat content),
         // and IS NOT the fuel model 10 HPUA.
-        this.heatPerUnitArea = this.fireBehavior.heatPerUnitArea + this.canopyFuelHpua
+        this.heatPerUnitArea = fireBehavior.heatPerUnitArea + this.canopyFuelHpua
 
         // Crown fire fireline intensity (Btu/ft/s)
         this.firelineIntensity = this.heatPerUnitArea * (this.headingSpreadRate / 60)

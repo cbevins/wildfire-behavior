@@ -1,5 +1,5 @@
 import { FuelModelCatalog, FuelBed, FuelIgnition, FireBehavior } from '#lib/index.js'
-import { ActiveCrownFireFuelBed, ActiveCrownFireFuelIgnition, ActiveCrownFireBehavior } from '#lib/ActiveCrownFire.js'
+import { CanopyFuelBed, CanopyFuelIgnition, ActiveCrownFireBehavior } from '#lib/ActiveCrownFire.js'
 import * as Bp from './Bp6Inputs.js'
 
 import { describe, it, expect } from 'vitest'
@@ -12,9 +12,8 @@ const fuelBed10 = new FuelBed({fuelModel: fuelModel10, curedHerb: Bp.fuelCuring.
 const fuelIgnition10 = new FuelIgnition({fuelBed: fuelBed10, ...Bp.fuelMoisture})
 const fireBehavior10 = new FireBehavior({fuelIgnition: fuelIgnition10, ...Bp.windSlope, ...Bp.options, slopeRatio: 0})
 
-//
-const crownBed = new ActiveCrownFireFuelBed()
-const crownIgnition = new ActiveCrownFireFuelIgnition({fuelBed: crownBed, ...Bp.fuelMoisture})
+const crownBed = new CanopyFuelBed()
+const crownIgnition = new CanopyFuelIgnition({fuelBed: crownBed, ...Bp.fuelMoisture})
 
 function missingFuelIgnition() { new ActiveCrownFireBehavior({junk: 'junk'}) }
 function missingWindSpeed20ft() { new ActiveCrownFireBehavior({fuelIgnition: crownIgnition, ...Bp.windSlope}) }
@@ -25,7 +24,7 @@ function missingCanopyLength() {new ActiveCrownFireBehavior(
 
 describe('ActiveCrownFireFuelModel Class', () => {
     it('properties match Fuel Model 10', () => {
-        const crownBed = new ActiveCrownFireFuelBed()
+        const crownBed = new CanopyFuelBed()
         expect(crownBed.fuelModel.number).toBe(255)
         expect(crownBed.fuelModel.code).toBe('crown')
         expect(crownBed.fuelModel.depth).toBe(fuelBed10.depth)
@@ -33,9 +32,9 @@ describe('ActiveCrownFireFuelModel Class', () => {
     })
 })
 
-describe('ActiveCrownFireFuelBed Class', () => {
+describe('CanopyFuelBed Class', () => {
     it('properties match BehavePlus v5 and v6 FuelModel 10:', () => {
-        const crownBed = new ActiveCrownFireFuelBed()
+        const crownBed = new CanopyFuelBed()
         expect(crownBed.bulkDensity).parts(0.552, ppb)
         expect(crownBed.depth).parts(1, ppb)
         expect(crownBed.liveMextFactor).parts(6.908948234294801, ppb)
@@ -71,10 +70,10 @@ describe('ActiveCrownFireFuelBed Class', () => {
         expect(crownBed.midflameWsrf).parts(0.36210426360602416, ppb)
     })
     
-    describe('ActiveCrownFireFuelIgnition Class', () => {
+    describe('CanopyFuelIgnition Class', () => {
         it('properties match BehavePlus v5 and v6 beta', () => {
-            const crownBed = new ActiveCrownFireFuelBed()
-            const crownIgnition = new ActiveCrownFireFuelIgnition({fuelBed: crownBed, ...Bp.fuelMoisture})
+            const crownBed = new CanopyFuelBed()
+            const crownIgnition = new CanopyFuelIgnition({fuelBed: crownBed, ...Bp.fuelMoisture})
     
             expect(crownIgnition.dead.fineFuelMoisture).parts(0.05389207884883955, ppb)
             expect(crownIgnition.dead.fineWaterLoad).parts(0.008463731497256665, ppb)
@@ -109,9 +108,10 @@ describe('ActiveCrownFireFuelBed Class', () => {
         })
 
         it('Fuel Model 10 FireBehavior properties match BehavePlus v5 and v6 beta:', () => {
-            const crownBed = new ActiveCrownFireFuelBed()
-            const crownIgnition = new ActiveCrownFireFuelIgnition({fuelBed: crownBed, ...Bp.fuelMoisture})
-            const params = {...Bp.params, fuelIgnition: crownIgnition, windSpeed20ft: 880, canopyBulkDensity: 0.02, canopyLength: 40}
+            const crownBed = new CanopyFuelBed()
+            const crownIgnition = new CanopyFuelIgnition({fuelBed: crownBed, ...Bp.fuelMoisture})
+            const params = {...Bp.params, fireBehavior: fireBehavior10, canopyFuelIgnition: crownIgnition,
+                windSpeed20ft: 880, canopyBulkDensity: 0.02, canopyLength: 40}
             const crownBehavior = new ActiveCrownFireBehavior(params)
     
             expect(crownBehavior.fireBehavior.windFactor).parts(fireBehavior10.windFactor, ppb)
