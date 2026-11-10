@@ -19,8 +19,6 @@ export class CanopyFuelIgnition extends FuelIgnition {
 export const ActiveCrownFireBehaviorProps = [
         {key: 'fireBehavior', type: 'FireBehavior', init: {}, desc: ''},
         {key: 'headingSpreadRate', type: 'fireRos', init: 0, desc: 'Active crown fire spread rate'},
-        {key: 'canopyFuelLoad', type: '', init: 0, desc: 'Crown canopy ovendry fuel load'},
-        {key: 'canopyFuelHpua', type: '', init: 0, desc: 'Crown canopy heat per unit area'},
         {key: 'heatPerUnitArea', type: 'fireHpua', init: 0, desc: 'Active crown fire sum of surface and crown fuel heats per unit area'},
         {key: 'firelineIntensity', type: 'fireFli', init: 0, desc: 'Active crown fire fireline intensity'},
         {key: 'flameLength', type: 'fireFl', init: 0, desc: 'Active crown fire flame length'},
@@ -31,7 +29,6 @@ export const ActiveCrownFireBehaviorProps = [
         {key: 'isWindDriven', type: '', init: 0, desc: ''},
 ]
 
-// params must have {fuelIgnition, windSpeed20ft, canopyBulkDensity, canopyLength}
 export class ActiveCrownFireBehavior {
     constructor(params=null) {
         this.#init()
@@ -41,24 +38,30 @@ export class ActiveCrownFireBehavior {
 
     #init() {
         for(let {key, init} of ActiveCrownFireBehaviorProps)
-            this[key] = init
+            this[key] = init 
     }
 
-    // MUST have fuelIgnition, windSpeed20ft, canopyBulkDensity, canopyLength (canopyHeatConetnt is optional)
     checkParams(params) {
-        for(let prop of ['fireBehavior', 'canopyFuelIgnition', 'windSpeed20ft', 'canopyBulkDensity', 'canopyLength']) {
+        console.log('checkParams', params)
+        for(let prop of ['canopyFuelIgnition', 'windSpeed20ft', 'canopyFuelHpua', 'surfaceFuelHpua']) {
             if (! Object.hasOwn(params, prop))
                 throw new Error(`ActiveCrownFireBehavior.update(params) requires a 'params.${prop}' property`)
         }
     }
 
+    /**
+     * 
+     * @param {object} params Object with props:
+     *  - canopyFuelIgnition:  reference to a **Canopy**FuelIgnition object to determine canopy spread rate
+     *  - windSpeed20ft: wind speed at canopy top (ft/min)
+     *  - surfaceFuelHpua: surface fuel heat per unit area (Btu/ft2)
+     *  - canopyFuelHpua: canopy fuel heat per unit area (Btu/ft2)
+     */
     update(params) {
+        // Either throw an error if missing parameters
         this.checkParams(params)
-        // Alternatively, assign defaults of zero
-        const {
-            fireBehavior,       // reference to the **surface** fuel FireBehavior object (for its 'heatPerUnitArea')
-            canopyFuelIgnition,  // reference to the **crown** FuelIgnition object to determine canopy spread rate
-            windSpeed20ft=0, canopyLength=0, canopyBulkDensity=0, canopyHeatContent=8000} = params
+        // or assign defaults of zero
+        const { canopyFuelIgnition, windSpeed20ft=0, surfaceFuelHpua=0, canopyFuelHpua=0 } = params
 
         // Use the **crown's internal** fuel model 10 to determine active crown fire spread rate
         // using wind speed at 20-ft and no slope:
@@ -67,21 +70,15 @@ export class ActiveCrownFireBehavior {
         // Rothermel's crown fire spread rate (ft/min)
         this.headingSpreadRate = 3.34 * this.fireBehavior.headingSpreadRate
 
-        // Need both the **surface** and the **crown** To determine heat per unit area, need both the surface and the crown fuel HPUA
-        // Canopy fuel load, HPUA
-        this.canopyFuelLoad = canopyBulkDensity * canopyLength
-        this.canopyFuelHpua = this.canopyFuelLoad * canopyHeatContent
-
-        // Active crown fire heat per unit area is the sum of the surface fire HPUA
-        // and the entire active canopy HPUA (i.e., canopy load * canopy heat content),
+        // Active crown fire heat per unit area is the **sum** of the surface and canopy fuel HPUA
         // and IS NOT the fuel model 10 HPUA.
-        this.heatPerUnitArea = fireBehavior.heatPerUnitArea + this.canopyFuelHpua
+        this.heatPerUnitArea = surfaceFuelHpua + canopyFuelHpua
 
         // Crown fire fireline intensity (Btu/ft/s)
         this.firelineIntensity = this.heatPerUnitArea * (this.headingSpreadRate / 60)
 
         // Crown fire flame length using Thomas (1963)
-        this.flameLength = (this.fireLineIntensity > 0 ) ? 0.2 * this.firelineIntensity**(2/3) : 0
+        this.flameLength = (this.firelineIntensity > 0 ) ? 0.2 * this.firelineIntensity**(2/3) : 0
 
         // Rothermel's power-of-the-fire (ft-lb/ft2/s)
         this.powerOfFire = this.firelineIntensity / 129

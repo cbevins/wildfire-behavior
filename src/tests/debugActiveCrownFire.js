@@ -1,4 +1,4 @@
-import { FuelModelCatalog, FuelBed, FuelIgnition, FireBehavior } from '#lib/index.js'
+import { FuelModelCatalog, FuelBed, FuelIgnition, FireBehavior, calcCanopyFuelLoad, calcCanopyFuelHpua } from '#lib/index.js'
 import { CanopyFuelBed, CanopyFuelIgnition, ActiveCrownFireBehavior } from '#lib/ActiveCrownFire.js'
 import * as Bp from './Bp6Inputs.js'
 
@@ -22,19 +22,25 @@ const params = {
     windBearing: 90,
     slopeRatio: 0.25,
     aspect: 180,
-    airTemp: 95,            // only used by scorch height
 }
 
-// Determine the active creown fire
+// Determine the active crown fire
 const canopyFuelBed = new CanopyFuelBed()
 const canopyFuelIgnition = new CanopyFuelIgnition({fuelBed: canopyFuelBed, ...params})
+const activeCrownFireBehavior = new ActiveCrownFireBehavior()
 
-params.fireBehavior = surfaceFireBehavior
-params.canopyFuelIgnition = canopyFuelIgnition
-params.windSpeed20ft = 10*88
-params.canopyBulkDensity = 0.02
-params.canopyLength = 40
-params.canopyHeatContent = 8000
-const activeCrownFireBehavior = new ActiveCrownFireBehavior(params)
-activeCrownFireBehavior.update(params)
+const windSpeed20ft = 10*88
+
+const canopyHeight = 40
+const canopyBase = 6
+const canopyBulkDensity = 0.02
+const canopyLength = canopyHeight - canopyBase
+const canopyFuelLoad = calcCanopyFuelLoad({canopyLength, canopyBulkDensity})
+
+const canopyFuelHeat = 8000
+const canopyFuelHpua = calcCanopyFuelHpua({canopyFuelLoad, canopyFuelHeat})
+
+const surfaceFuelHpua = surfaceFireBehavior.heatPerUnitArea
+
+activeCrownFireBehavior.update({canopyFuelIgnition, windSpeed20ft, canopyFuelHpua, surfaceFuelHpua})
 console.log(activeCrownFireBehavior)

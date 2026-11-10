@@ -1,4 +1,4 @@
-import { FuelModelCatalog, FuelBed, FuelIgnition, FireBehavior } from '#lib/index.js'
+import { FuelModelCatalog, FuelBed, FuelIgnition, FireBehavior,calcCanopyFuelLoad, calcCanopyFuelHpua } from '#lib/index.js'
 import { CanopyFuelBed, CanopyFuelIgnition, ActiveCrownFireBehavior } from '#lib/ActiveCrownFire.js'
 import * as Bp from './Bp6Inputs.js'
 
@@ -12,14 +12,20 @@ const fuelBed10 = new FuelBed({fuelModel: fuelModel10, curedHerb: Bp.fuelCuring.
 const fuelIgnition10 = new FuelIgnition({fuelBed: fuelBed10, ...Bp.fuelMoisture})
 const fireBehavior10 = new FireBehavior({fuelIgnition: fuelIgnition10, ...Bp.windSlope, ...Bp.options, slopeRatio: 0})
 
-const crownBed = new CanopyFuelBed()
-const crownIgnition = new CanopyFuelIgnition({fuelBed: crownBed, ...Bp.fuelMoisture})
+const canopyFuelBed = new CanopyFuelBed()
+const canopyFuelIgnition = new CanopyFuelIgnition({fuelBed: canopyFuelBed, ...Bp.fuelMoisture})
 
-function missingFuelIgnition() { new ActiveCrownFireBehavior({junk: 'junk'}) }
-function missingWindSpeed20ft() { new ActiveCrownFireBehavior({fuelIgnition: crownIgnition, ...Bp.windSlope}) }
-function missingCanopyBulkDensity() {new ActiveCrownFireBehavior({fuelIgnition: crownIgnition, ...Bp.windSlope, windSpeed20ft: 880}) }
-function missingCanopyLength() {new ActiveCrownFireBehavior(
-    {fuelIgnition: crownIgnition, ...Bp.windSlope, windSpeed20ft: 880, canopyBulkDensity: 0.02})
+function missingCanopyFuelIgnition() {
+    new ActiveCrownFireBehavior({windSpeed20ft:880, surfaceFuelHpua: 1000, canopyFuelHpua:1000 })
+}
+function missingWindSpeed20ft() {
+    new ActiveCrownFireBehavior({canopyFuelIgnition, surfaceFuelHpua: 1000, canopyFuelHpua:1000})
+}
+function missingSurfaceFuelHpua() {
+    new ActiveCrownFireBehavior({canopyFuelIgnition, windSpeed20ft: 880, canopyFuelHpua:1000})
+}
+function missingCanopyFuelHpua() {
+    new ActiveCrownFireBehavior({canopyFuelIgnition, windSpeed20ft: 880, surfaceFuelHpua: 1000})
 }
 
 describe('ActiveCrownFireFuelModel Class', () => {
@@ -94,29 +100,45 @@ describe('CanopyFuelBed Class', () => {
     })
 
     describe('ActiveCrownFireBehavior Class', () => {
-        it('fails when params is missing fuelIgnition', () => {
-            expect(() => missingFuelIgnition()).toThrow()
+        it('fails when params is missing canopyFuelIgnition', () => {
+            expect(() => missingCanopyFuelIgnition()).toThrow()
         })
         it('fails when params is missing windSpeed20ft', () => {
             expect(() => missingWindSpeed20ft()).toThrow()
         })
-        it('fails when params is missing canopyBulkDensity', () => {
-            expect(() => missingCanopyBulkDensity()).toThrow()
+        it('fails when params is missing canopyFuelHpua', () => {
+            expect(() => missingCanopyFuelHpua()).toThrow()
         })
-        it('fails when params is missing canopyLength', () => {
-            expect(() => missingCanopyLength()).toThrow()
+        it('fails when params is missing surfaceFuelHpua', () => {
+            expect(() => missingSurfaceFuelHpua()).toThrow()
         })
 
         it('Fuel Model 10 FireBehavior properties match BehavePlus v5 and v6 beta:', () => {
-            const crownBed = new CanopyFuelBed()
-            const crownIgnition = new CanopyFuelIgnition({fuelBed: crownBed, ...Bp.fuelMoisture})
-            const params = {...Bp.params, fireBehavior: fireBehavior10, canopyFuelIgnition: crownIgnition,
-                windSpeed20ft: 880, canopyBulkDensity: 0.02, canopyLength: 40}
-            const crownBehavior = new ActiveCrownFireBehavior(params)
+            // Create a re-usable processor
+            const crownFire = new ActiveCrownFireBehavior()
+            
+            // Determine the input params: canopyFuelIgnition, windSpeed20ft, canopyFuelHpua, surfaceFuelHpua
+            const canopyFuelIgnition = new CanopyFuelIgnition({fuelBed: canopyFuelBed, ...Bp.fuelMoisture})
+            const windSpeed20ft = 880
+            const surfaceFuelHpua = fireBehavior10.heatPerUnitArea
+
+            // Determine canopy fuel load from canopyBulkDensity and canopyLength
+            const canopyHeight = 40
+            const canopyBase = 6
+            const canopyLength = canopyHeight - canopyBase
+            const canopyBulkDensity = 0.02
+            const canopyFuelLoad = calcCanopyFuelLoad({canopyLength, canopyBulkDensity})
+
+            // Determine canopy fuel HPUA from canopyFuelLoad and canopyFuelHpua
+            const canopyFuelHeat = 8000
+            const canopyFuelHpua = calcCanopyFuelHpua({canopyFuelLoad, canopyFuelHeat})
+
+            // Update the processor state
+            crownFire.update({canopyFuelIgnition, windSpeed20ft, canopyFuelHpua, surfaceFuelHpua})
     
-            expect(crownBehavior.fireBehavior.windFactor).parts(fireBehavior10.windFactor, ppb)
-            expect(crownBehavior.fireBehavior.slopeFactor).parts(fireBehavior10.slopeFactor, ppb)
-            expect(crownBehavior.headingSpreadRate).parts(3.34 * fireBehavior10.headingSpreadRate, ppb)
+            expect(crownFire.fireBehavior.windFactor).parts(fireBehavior10.windFactor, ppb)
+            expect(crownFire.fireBehavior.slopeFactor).parts(fireBehavior10.slopeFactor, ppb)
+            expect(crownFire.headingSpreadRate).parts(3.34 * fireBehavior10.headingSpreadRate, ppb)
         })
     })
 })

@@ -1,6 +1,6 @@
 import { clockwiseFromHeadToBearing, clockwiseFromHeadToRotation,
     getFlameLength, getScorchHeight, toRadians } from './utils.js'
-import { calcBetaFromTheta, calcPsiFromTheta, calcThetaFromBeta } from './getEllipseAngles.js'
+import { calcBetaFromTheta, calcPsiFromTheta, calcThetaFromBeta } from './calcEllipseAngles.js'
 
 export const FireVectorProps = [
     { key: 'angleFromHead', type: 'angle', init: 0, desc: ''},
