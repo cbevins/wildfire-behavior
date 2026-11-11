@@ -1,5 +1,6 @@
 /**
- * simpleState.js refactors simple2.js as a state machine.
+ * simpleState.js refactors simple2.js as a state machine in the SimpleState class.
+ * See the runSimplaeState() function at the end of the file for usage.
  * 
  * All inputs are specified in a single params object (use the 'simpleStateParams' as a template).
  * 
@@ -7,6 +8,7 @@
  * But is still suitable for producing in cases where the input params are (semi-) random or
  * unknown in advance.  One such use-case is producing FlamMap style maps from LANDFIRE
  * fuel model, slope, aspect arrays and local wind and fuel moisture inputs.
+ * 
  */
 import { FuelModelCatalog, FuelBed, FuelIgnition, FireBehavior, FireShape, FireSize } from '#lib/index.js'
 import { FireVectorBack, FireVectorBeta, FireVectorBeta6, FireVectorHead, FireVectorPsi } from '#lib/index.js'
@@ -34,10 +36,10 @@ export const simpleStateParams = {
     limitSpreadRateToWindSpeed: true,
     // Updating the FireSize
     elapsedTime: 60,
-    ignEast:0,
-    ignNorth:0,
-    ignX:0,
-    ignY:0,
+    ignEast: 0,
+    ignNorth: 0,
+    ignX: 0,
+    ignY: 0,
     // Updating the FireVectors
     betaFromHead: 45,
     psiFromHead: 45,
@@ -82,7 +84,8 @@ export class SimpleState {
         this.fireBehavior.update({fuelIgnition: this.fuelIgnition, ...params})
 
         // Determine fire's elliptical shape from fire spread rate, bearing, andl/w ratio
-        this.fireShape.update({fireBehavior: this.fireBehavior, ...params})
+        const {headingSpreadRate, headingFromNorth, lengthWidthRatio, flameLength} = this.fireBehavior
+        this.fireShape?.update({headingSpreadRate, headingFromNorth, flameLength, lengthWidthRatio})
         
         // Determine the fire spread distance, size, and location
         this.fireSize.update({fireShape: this.fireShape, ...params})
@@ -124,9 +127,13 @@ export class SimpleState {
 
 // ------------------------------------------------------
 
-const start = performance.now()
-const state = new SimpleState(simpleStateParams)
-const stop = performance.now()
+export function runSimpleState(params) {
+    const start = performance.now()
+    const state = new SimpleState(params)
+    const stop = performance.now()
+    state.display()
+    console.log(`simpleState.js elapsed time: ${fmt(stop-start)} msec`)
+}
 
-state.display()
-console.log(`simpleState.js elapsed time: ${fmt(stop-start)} msec`)
+// Uncomment the line below to run this script
+// runSimpleState(simpleStateParams)

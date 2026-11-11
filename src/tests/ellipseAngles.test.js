@@ -17,7 +17,8 @@ describe('ellipseAngles.js functions', () => {
         const fuelBed = new FuelBed({fuelModel, curedHerb: Bp.fuelCuring.curedHerb})
         const fuelIgnition = new FuelIgnition({fuelBed, ...Bp.fuelMoisture})
         const fireBehavior = new FireBehavior({fuelIgnition, ...Bp.windSlope, ...Bp.options})
-        const fireShape = new FireShape({fireBehavior})   // NOTE: fireBehavior IS an object
+        const {headingSpreadRate, headingFromNorth, lengthWidthRatio, flameLength} = fireBehavior
+        const fireShape = new FireShape({headingSpreadRate, headingFromNorth, flameLength, lengthWidthRatio})
         
         expect(fireShape.headingSpreadRate).parts(fireBehavior.headingSpreadRate)
         expect(fireShape.lengthWidthRatio).parts(3.5015680219321221, ppb)

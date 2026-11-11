@@ -22,15 +22,17 @@ const fuelModel = catalog.get('gs4')
 const fuelBed = new FuelBed({fuelModel, curedHerb: 0.5})
 
 // Apply the effects of fuel moisture content to the fuel bed ignition process:
-const fuelIgnition = new FuelIgnition({fuelBed,
-    moistureDead1h: 0.05,
+const fuelIgnition = new FuelIgnition({
+    fuelBed,                // FuelModel reference
+    moistureDead1h: 0.05,   // fuel moisture content (fraction)
     moistureDead10h: 0.07,
     moistureDead100h: 0.09,
     moistureLiveHerb: 0.5,
     moistureLiveStem: 1.5})
 
 // Apply the effects of wind and slope to the fuel bed's fire behavior:
-const fireBehavior = new FireBehavior({fuelIgnition,
+const fireBehavior = new FireBehavior({
+    fuelIgnition,               // FuelIgnition reference
     midflameWindSpeed: 10*88,   // 10 mph * 88 => ft/min
     windBearing: 90,            // wind heading to the east
     slopeRatio: 0.25,           // slope of 14.03624347 degrees
@@ -40,7 +42,13 @@ const fireBehavior = new FireBehavior({fuelIgnition,
 
 // Determine fire's elliptical shape from the spread rate, heading direction,
 // flame length, and length-to-width ratio estimated by the above statement:
-const fireShape = new FireShape({fireBehavior})   // NOTE: fireBehavior IS ALREADY an object
+const {headingSpreadRate, headingFromNorth, lengthWidthRatio, flameLength} = fireBehavior
+const fireShape = new FireShape({
+    headingSpreadRate,
+    headingFromNorth,
+    flameLength,
+    lengthWidthRatio
+})
 
 // Determine the fire spread distance, size, and location
 const fireSize = new FireSize({fireShape,
