@@ -1,6 +1,6 @@
 /**
  * simple1.js demonstrates the calling sequence of all the fire behavior classes
- * and their input parameters to diplay some common fire behavior properties,
+ * and their input parameters.  It diplays some common fire behavior properties,
  * size, and location at a given time after ignition for a single fuel model
  * under constant fuel moisture, wind, and slope conditions.
  */
@@ -37,8 +37,8 @@ const fireBehavior = new FireBehavior({
     windBearing: 90,            // wind heading to the east
     slopeRatio: 0.25,           // slope of 14.03624347 degrees
     aspect: 180,                // southerly aspect (upslope is north)
-    limitWindSpeedFactor: true,         // advanced use only; omit or leave as true
-    limitSpreadRateToWindSpeed: true})   // advanced use only; omit or leave as true
+    limitWindSpeedFactor: true, // limit effective wind speed by fire intnensity (advanced use only; omit or leave as true)
+    limitSpreadRateToWindSpeed: true})   // limit spread rate to wind speed (advanced use only; omit or leave as true)
 
 // Determine fire's elliptical shape from the spread rate, heading direction,
 // flame length, and length-to-width ratio estimated by the above statement:
