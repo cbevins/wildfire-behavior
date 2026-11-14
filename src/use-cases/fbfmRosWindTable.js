@@ -1,21 +1,6 @@
-/**
-Given a set of fire behavior input parameters, FbfmRosWindTable produces a table
-of heading spread rate under midflame wind speed of 0-20 mph for the
-53 'standard' fire behavior fuel models (13 per Anderson and 40 per Scott & Burgan).
-
-
-Like the FbfmFireCharTable class, this also demonstrates some optimizations,
-- The FuelModel - FuelBed pairs are pre-constructued for all 53 fuel models.
-- The fbfmFireCharTable instance keeps a copy of the current input parameters.
-- fuelBed.update() is only called if the FuelModel has curable herb
-    and the 'curedHerb' input parameter has changed.
-- fuelIgnition.update() is only called when the fuel model moisture content input
-parameter has changed for one (or more) of its existing fuel moisture classes.
-*/
 import { FuelModelCatalog, FuelBed, FuelIgnition, FireBehavior } from '#lib/index.js'
-import { fmt } from './utils.js'
 
-const initialParams = {
+export const FbfmRosWindTableParams = {
     // Updating the FuelBed
     curedHerb: 0.778,
     // Updating the FuelIgnition
@@ -35,26 +20,26 @@ const initialParams = {
 
 export class FbfmRosWindTable {
     constructor(params=null) {
-        this.#initClasses()
-        if (params) this.update(params)
-    }
-    #initClasses() {
-        this.params = initialParams
+        // Start with full compliment of default parameters,
+        // then over-write with any client-specific values
+        this.params = {...FbfmRosWindTableParams, ...params}
+        
+        // Create and store the FuelModel, FuelBed, FuelIgnition, and FireBehavior for each fuelKey
         this.fuelCatalog = new FuelModelCatalog()
         this.fbfm = []
         for (let fuelKey of this.fuelCatalog.getNumberKeys()) {
             if (this.fuelCatalog.isBurnable(fuelKey)) {
                 const isCurable = this.fuelCatalog.isCurable(fuelKey)
                 const fuelModel = this.fuelCatalog.get(fuelKey)
-                const fuelBed = new FuelBed({fuelModel, ...initialParams})
-                const fuelIgnition = new FuelIgnition({fuelBed, ...initialParams})
-                const fireBehavior = new FireBehavior({fuelIgnition, ...initialParams})
+                const fuelBed = new FuelBed({fuelModel, ...this.params})
+                const fuelIgnition = new FuelIgnition({fuelBed, ...this.params})
+                const fireBehavior = new FireBehavior({fuelIgnition, ...this.params})
                 this.fbfm.push({fuelKey, isCurable, fuelModel, fuelBed, fuelIgnition, fireBehavior})
             }
         }
         this.update(this.params)
     }
-
+    
     isChanged(props) {
         for(let prop of props) {
             if (this.params[prop] !== this.prevParams[prop]) return true
@@ -97,26 +82,11 @@ export class FbfmRosWindTable {
             let values = []
             for(let mws=range.min; mws<=range.max; mws+=range.step) {
                 fireBehavior.update({fuelIgnition, ...params, midflameWindSpeed: mws*88})
-                values.push(fmt(fireBehavior[prop]))
+                values.push(fireBehavior[prop])
             }
 
-            results.push({number: fmt(number), code, prop, values})
+            results.push({number, code, prop, values})
         }
         return results
     }
 }
-
-// ------------------------------------------------------
-
-function example() {
-    const start = performance.now()
-    const fmft = new FbfmRosWindTable()
-    let rosTable = fmft.update(initialParams)
-    let flTable = fmft.update(initialParams, {min:0, max:20, step:1}, 'flameLength')
-    const stop = performance.now()
-    console.log(rosTable)
-    console.log(flTable)
-    console.log(`fbfmRosWindTable.js elapsed time: ${fmt(stop-start)} msec`)
-}
-
-example()
