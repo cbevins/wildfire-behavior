@@ -1,26 +1,6 @@
-/**
-fbfmFireCharTable.js produces a table of heading spread rate, direction, and flame length
-for the 53 'standard' fire behavior fuel models (13 per Anderson and 40 per Scott & Burgan)
-under a set of curing, moisture, wind, and slope conditions.
-
-The table is suitable for creating a 'fire behavior characteristics chart', where each
-fuel model is plotted on a chart with fire spread rate on the x-axis and
-flame length on the y-axis.
-
-It also demonstrates some optimizations,
-- The FuelModel - FuelBed pairs are pre-constructued for all 53 fuel models.
-- The fbfmFireCharTable instance keeps a copy of the current input parameters.
-- fuelBed.update() is only called if the FuelModel has curable herb
-    and the 'curedHerb' input parameter has changed.
-- fuelIgnition.update() is only called when the fuel model moisture content input
-parameter has changed for one (or more) of its existing fuel moisture classes.
-- fireBehavior.update() is only called if one of the wind speed, direction, slope,
-    or aspect input parameters have changed.
-*/
 import { FuelModelCatalog, FuelBed, FuelIgnition, FireBehavior } from '#lib/index.js'
-import { fmt } from './utils.js'
 
-const initialParams = {
+export const FbfmFireCharTableParams = {
     // Updating the FuelBed
     curedHerb: 0,
     // Updating the FuelIgnition
@@ -40,20 +20,20 @@ const initialParams = {
 
 export class FbfmFireCharTable {
     constructor(params=null) {
-        this.#initClasses()
-        if (params) this.update(params)
-    }
-    #initClasses() {
-        this.params = initialParams
+        // Start with full compliment of default parameters,
+        // then over-write with any client-specific values
+        this.params = {...FbfmFireCharTableParams, ...params}
+        
+        // Create and store the FuelModel, FuelBed, FuelIgnition, and FireBehavior for each fuelKey
         this.fuelCatalog = new FuelModelCatalog()
         this.fbfm = []
         for (let fuelKey of this.fuelCatalog.getNumberKeys()) {
             if (this.fuelCatalog.isBurnable(fuelKey)) {
                 const isCurable = this.fuelCatalog.isCurable(fuelKey)
                 const fuelModel = this.fuelCatalog.get(fuelKey)
-                const fuelBed = new FuelBed({fuelModel, ...initialParams})
-                const fuelIgnition = new FuelIgnition({fuelBed, ...initialParams})
-                const fireBehavior = new FireBehavior({fuelIgnition, ...initialParams})
+                const fuelBed = new FuelBed({fuelModel, ...this.params})
+                const fuelIgnition = new FuelIgnition({fuelBed, ...this.params})
+                const fireBehavior = new FireBehavior({fuelIgnition, ...this.params})
                 this.fbfm.push({fuelKey, isCurable, fuelModel, fuelBed, fuelIgnition, fireBehavior})
             }
         }
@@ -106,59 +86,8 @@ export class FbfmFireCharTable {
             }
 
             const {headingSpreadRate, flameLength} = fireBehavior
-            results.push({number: fmt(number), code, ros: fmt(headingSpreadRate), flame: fmt(flameLength), changed})
+            results.push({number: number, code, ros: headingSpreadRate, flame: flameLength, changed})
         }
         return results
     }
 }
-
-// ------------------------------------------------------
-function changed(results) {
-    let nChanged = 0
-    for(let result of results) {
-        if (result.changed) nChanged++
-    }
-    return nChanged
-}
-
-function example() {
-    const start = performance.now()
-
-    const fmft = new FbfmFireCharTable()
-    // let results = fmft.update(initialParams)
-    // console.log('Initial Params', fmft.params)
-    // console.log('Initial Results', results)
-
-    // Change curedHerb
-    const params = {...fmft.params}
-    params.curedHerb = 0.5
-    let results = fmft.update(params)
-    console.log('After curedHerb=0.5', fmft.params)
-    console.log('Results After', results)
-    console.log('Number of FuelBeds changed by curedHerb:', changed(results))
-
-    params.moistureDead100h = 0.09
-    results = fmft.update(params)
-    console.log('Number of FuelBeds changed by moistureDead100h:', changed(results))
-
-    params.moistureDead10h = 0.07
-    results = fmft.update(params)
-    console.log('Number of FuelBeds changed by moistureDead10h:', changed(results))
-
-    params.moistureDead1h = 0.05
-    results = fmft.update(params)
-    console.log('Number of FuelBeds changed by moistureDead1h:', changed(results))
-
-    params.moistureLiveHerb = 0.5
-    results = fmft.update(params)
-    console.log('Number of FuelBeds changed by moistureLiveHerb:', changed(results))
-
-    params.moistureLiveStem = 1.5
-    results = fmft.update(params)
-    console.log('Number of FuelBeds changed by moistureLiveStem:', changed(results))
-
-    const stop = performance.now()
-    console.log(`fbfmFireCharTable.js elapsed time: ${fmt(stop-start)} msec`)
-}
-
-example()

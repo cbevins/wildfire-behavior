@@ -1,4 +1,4 @@
-import { FbfmFireCharTable } from '../use-cases/fbfmFireCharTable.js'
+import { FbfmFireCharTable } from '../use-cases/FbfmFireCharTable.js'
 
 import { describe, it, expect } from 'vitest'
 import { parts } from './assertions.js'
