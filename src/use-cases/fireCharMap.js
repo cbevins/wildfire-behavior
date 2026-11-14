@@ -1,9 +1,10 @@
 // Example class for creating fire behavior characteristic raster maps similar to FlamMap.
 
 import { FuelModelCatalog, FuelBed, FuelIgnition, FireBehavior, calcCanopyMidflameWsrf } from '#lib/index.js'
+import { ParamsBp6 } from './Params.js'
 
 // All the input parameters required to run FireCharMap
-export const FireCharMapParams = {
+export const FireCharMapParams = {...ParamsBp6,
     // Temporally variable parameters, possibly from a local weather station
     curedHerb: 0, moistureDead1h: 0.05, moistureDead10h: 0.07, moistureDead100h: 0.09,
     moistureLiveHerb: 0.5, moistureLiveStem: 1.5, windSpeed20ft: 0, windBearing: 0,

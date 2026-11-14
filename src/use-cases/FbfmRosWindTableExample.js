@@ -12,14 +12,15 @@ Like the FbfmFireCharTable class, this also demonstrates some optimizations,
 - fuelIgnition.update() is only called when the fuel model moisture content input
 parameter has changed for one (or more) of its existing fuel moisture classes.
 */
-import { FbfmRosWindTable, FbfmRosWindTableParams } from "./FbfmRosWindTable.js"
+import { FbfmRosWindTable } from "./FbfmRosWindTable.js"
+import { ParamsBp6 } from './Params.js'
 import { fmt } from './utils.js'
 
 function example() {
     const start = performance.now()
     const fmft = new FbfmRosWindTable()
 
-    let params = {...FbfmRosWindTableParams}
+    let params = {...ParamsBp6}
     let windRange = {min:0, max: 20, step:1}
     let rosTable = fmft.update(params, windRange, 'headingSpreadRate')
 

@@ -13,46 +13,13 @@
 import { FuelModelCatalog, FuelBed, FuelIgnition, FireBehavior, FireShape, FireSize } from '#lib/index.js'
 import { FireVectorBack, FireVectorBeta, FireVectorBeta6, FireVectorHead, FireVectorPsi } from '#lib/index.js'
 import { fmt, fmtVector } from './utils.js'
-
-export const simpleStateParams = {
-    // The following may be modified:
-    // Creating a FuelModel
-    fuelKey: '10',
-    // Updating the FuelBed
-    curedHerb: 0.778,
-    // Updating the FuelIgnition
-    moistureDead1h: 0.05,
-    moistureDead10h: 0.07,
-    moistureDead100h: 0.09,
-    moistureLiveHerb: 0.5,
-    moistureLiveStem: 1.5,
-    // Updating the FireBehavior
-    midflameWindSpeed: 10*88,
-    windBearing: 90,
-    slopeRatio: 0.25,                   // slopeDegrees: 14.03624347,
-    aspect: 180,
-    airTemp: 95,                        // only used by vector scorch height
-    limitWindSpeedFactor: true,
-    limitSpreadRateToWindSpeed: true,
-    // Updating the FireSize
-    elapsedTime: 60,
-    ignEast: 0,
-    ignNorth: 0,
-    ignX: 0,
-    ignY: 0,
-    // Updating the FireVectors
-    betaFromHead: 45,
-    psiFromHead: 45,
-    calcVectorFlameLength: true,
-}
+import { ParamsBp6 } from './Params.js'
 
 export class SimpleState {
     constructor(params=null) {
-        this.#initClasses()
-        if (params) this.update(params)
-    }
-    #initClasses() {
-        this.params = {}
+        // Start with full compliment of default parameters,
+        // then over-write with any client-specific values
+        this.params = {...ParamsBp6, ...params}
         this.fuelCatalog = new FuelModelCatalog()
         this.fuelModel = null
         this.fuelBed = new FuelBed()
@@ -65,6 +32,7 @@ export class SimpleState {
         this.beta5Vector = new FireVectorBeta()
         this.beta6Vector = new FireVectorBeta6()
         this.psiVector = new FireVectorPsi()
+        this.update(this.params)
     }
 
     update(params) {
@@ -85,7 +53,7 @@ export class SimpleState {
 
         // Determine fire's elliptical shape from fire spread rate, bearing, andl/w ratio
         const {headingSpreadRate, headingFromNorth, lengthWidthRatio, flameLength} = this.fireBehavior
-        this.fireShape?.update({headingSpreadRate, headingFromNorth, flameLength, lengthWidthRatio})
+        this.fireShape.update({headingSpreadRate, headingFromNorth, flameLength, lengthWidthRatio})
         
         // Determine the fire spread distance, size, and location
         this.fireSize.update({fireShape: this.fireShape, ...params})
@@ -124,16 +92,3 @@ export class SimpleState {
         ])
     }
 }
-
-// ------------------------------------------------------
-
-export function runSimpleState(params) {
-    const start = performance.now()
-    const state = new SimpleState(params)
-    const stop = performance.now()
-    state.display()
-    console.log(`simpleState.js elapsed time: ${fmt(stop-start)} msec`)
-}
-
-// Uncomment the line below to run this script
-// runSimpleState(simpleStateParams)

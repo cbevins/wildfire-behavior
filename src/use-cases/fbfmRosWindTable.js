@@ -1,28 +1,11 @@
 import { FuelModelCatalog, FuelBed, FuelIgnition, FireBehavior } from '#lib/index.js'
-
-export const FbfmRosWindTableParams = {
-    // Updating the FuelBed
-    curedHerb: 0.778,
-    // Updating the FuelIgnition
-    moistureDead1h: 0.05,
-    moistureDead10h: 0.07,
-    moistureDead100h: 0.09,
-    moistureLiveHerb: 0.5,
-    moistureLiveStem: 1.5,
-    // Updating the FireBehavior
-    midflameWindSpeed: 0,
-    windBearing: 90,
-    slopeRatio: 0.25,
-    aspect: 180,
-    limitWindSpeedFactor: true,
-    limitSpreadRateToWindSpeed: true,
-}
+import { ParamsBp6 } from './Params.js'
 
 export class FbfmRosWindTable {
     constructor(params=null) {
         // Start with full compliment of default parameters,
         // then over-write with any client-specific values
-        this.params = {...FbfmRosWindTableParams, ...params}
+        this.params = {...ParamsBp6, ...params}
         
         // Create and store the FuelModel, FuelBed, FuelIgnition, and FireBehavior for each fuelKey
         this.fuelCatalog = new FuelModelCatalog()

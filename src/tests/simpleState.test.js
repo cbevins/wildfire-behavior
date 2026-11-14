@@ -1,4 +1,4 @@
-import { SimpleState } from '../use-cases/simpleState.js'
+import { SimpleState } from '../use-cases/SimpleState.js'
 import { bpFireShape, bpFirePerim, bpFireVector } from './Bp6Results.js'
 
 import { describe, it, expect } from 'vitest'
@@ -51,7 +51,7 @@ describe('simpleState use-case', () => {
             bpStateParams.psiFromHead = bpFireVector.psiFromHead[idx]
             state.update(bpStateParams)
 
-            const fire = state.fireBehavior
+            const fire = state.fireBehavior 
             expect(fire.headingSpreadRate).parts(bpFireShape.headingSpreadRate[idx], ppb)
             expect(fire.headingFromNorth).parts(bpFireShape.headingFromNorth[idx], ppb)
             expect(fire.flameLength).parts(bpFireShape.flameLength[idx], ppb)

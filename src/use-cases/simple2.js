@@ -1,6 +1,6 @@
 /**
- * simple2.js refactors simple1.js by declaring all input parameters
- * into functional objects that are then combined into a single 'params' object:
+ * simple2.js refactors simple1.js by grouping input parameters into objects used
+ * by each function, then combining them all into a single 'params' object:
  */
 
 import { FuelModelCatalog, FuelBed, FuelIgnition, FireBehavior, FireShape, FireSize } from '#lib/index.js'
@@ -9,15 +9,14 @@ import { fmt, fmtVector } from './utils.js'
 
 const start = performance.now()
 
-// Inputs
 const fuelKey = 'gs4'
 
-// FuelBed params:
+// FuelBed.update() params:
 const fuelCuring = {
     curedHerb: 0.5,
 }
 
-// FuelIgnition params:
+// FuelIgnition.update() params:
 const fuelMoisture = {
     moistureDead1h: 0.05,
     moistureDead10h: 0.07,
@@ -26,7 +25,7 @@ const fuelMoisture = {
     moistureLiveStem: 1.5
 }
 
-// FireBehavior() params
+// FireBehavior.update() params
 export const windSlope = {
     midflameWindSpeed: 10*88,
     windBearing: 90,
@@ -38,7 +37,7 @@ export const windSlope = {
     airTemp: 95,            // only used by scorch height
 }
 
-// FireSize() params
+// FireSize.update() params
 export const firePosition = {
     elapsedTime: 60,
     ignEast:0,
@@ -47,7 +46,7 @@ export const firePosition = {
     ignY:0
 }
 
-// FireVector* params:
+// FireVector*.update() params:
 export const fireVector = {
     betaFromHead: 45,
     psiFromHead: 45,
@@ -63,7 +62,8 @@ const fuelModel = catalog.get(fuelKey)
 const fuelBed = new FuelBed({fuelModel, ...params})
 const fuelIgnition = new FuelIgnition({fuelBed, ...params})
 const fireBehavior = new FireBehavior({fuelIgnition, ...params})
-const fireShape = new FireShape({fireBehavior})   // NOTE: fireBehavior IS an object
+const {headingSpreadRate, headingFromNorth, flameLength, lengthWidthRatio} = fireBehavior
+const fireShape = new FireShape({headingSpreadRate, headingFromNorth, flameLength, lengthWidthRatio})
 
 // Process fire distance and location at specific elapsed time and angle
 const fireSize = new FireSize({fireShape, ...params})

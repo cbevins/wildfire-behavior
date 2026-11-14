@@ -194,8 +194,8 @@ describe('FbfmFireCharTable use-case', () => {
         const fmft = new FbfmFireCharTable()
         const results = fmft.update(bpParams)
         const obj = toObject(results)
-        expect(obj[10].ros).toBe(18.55)
-        expect(obj[10].flame).toBe(6.99)
+        expect(obj[10].ros).toBe(18.551680325603904)
+        expect(obj[10].flame).toBe(6.9996889013498365)
     })
 })
 
