@@ -1,14 +1,8 @@
-/**
-Optimizes simpleState.js by keeping a copy of the current **params** object,
-and only calling update(params) where necessitated by changes in params properties.
-*/
-import { FuelModelCatalog, FuelBed, FuelIgnition, FireBehavior, FireShape, FireSize,
-    FireVectorBack, FireVectorBeta, FireVectorBeta6, FireVectorHead, FireVectorPsi } from '#lib/index.js'
-import { fmt, fmtVector } from './utils.js'
+import { FuelModelCatalog, FuelBed, FuelIgnition, FireBehavior } from '#lib/index.js'
 
-const initialParams = {
+export const OptimizedStateParams = {
     // Updating the FuelBed
-    curedHerb: -1 ,
+    curedHerb: 0,
     // Updating the FuelIgnition
     moistureDead1h: 0.1,
     moistureDead10h: 0.1,
@@ -24,13 +18,12 @@ const initialParams = {
     limitSpreadRateToWindSpeed: true,
 }
 
-export class FuelModelFireTable {
+export class OptimizedState {
     constructor(params=null) {
-        this.#initClasses()
-        if (params) this.update(params)
-    }
-    #initClasses() {
-        this.params = {}
+        // Start with full compliment of default parameters,
+        // then over-write with any client-specific values
+        this.params = {...OptimizedStateParams, ...params}
+        
         this.fuelCatalog = new FuelModelCatalog()
         this.fuelIgnition = new FuelIgnition()
         this.fireBehavior = new FireBehavior()
@@ -40,12 +33,12 @@ export class FuelModelFireTable {
         for (let fuelKey of this.fuelCatalog.getNumberKeys()) {
             if (this.fuelCatalog.isBurnable(fuelKey)) {
                 const fuelModel = this.fuelCatalog.get(fuelKey)
-                const fuelBed = new FuelBed({fuelModel, ...initialParams})
+                const fuelBed = new FuelBed({fuelModel, ...this.params})
                 this.fuelModels.push(fuelModel)     // Array of references to FuelModels
                 this.fuelBeds.push(fuelBed)
             }
         }
-        this.update(initialParams)
+        this.update(this.params)
     }
 
     isChanged(props) {
@@ -57,7 +50,7 @@ export class FuelModelFireTable {
 
     update(params) {
         this.prevParams = this.params
-        this.params = params
+        this.params = {...params}
         const results = []
         for (let fuelBed of this.fuelBeds) {
             let changed = false
@@ -83,12 +76,3 @@ export class FuelModelFireTable {
         return results
     }
 }
-
-// ------------------------------------------------------
-
-const start = performance.now()
-const fmft = new FuelModelFireTable()
-const results = fmft.update(initialParams)
-const stop = performance.now()
-console.log(results)
-console.log(`fuelModelFireTable.js elapsed time: ${fmt(stop-start)} msec`)
