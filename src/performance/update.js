@@ -1,5 +1,7 @@
 import { FuelModelCatalog, FuelBed, FuelIgnition, FireBehavior, FireShape, FireSize } from '#lib/index.js'
 import { FireVectorBack, FireVectorBeta, FireVectorBeta6, FireVectorHead, FireVectorPsi } from '#lib/index.js'
+import { CanopyFuelBed, CanopyFuelIgnition, ActiveCrownFireBehavior } from '#lib/ActiveCrownFireBehavior.js'
+import { calcCanopyFuelLoad, calcCanopyFuelHpua, calcCanopyMidflameWsrf } from '#lib/index.js'
 import { ParamsBp6 } from '../use-cases/Params.js'
 
 export function fmt(v, dec=2) {
@@ -9,6 +11,10 @@ export function fmt(v, dec=2) {
 
 const params = {...ParamsBp6}
 const results = []
+        
+// There should only ever be 1 of these instances, so no need to test
+const canopyFuelBed = new CanopyFuelBed()
+const canopyFuelIgnition = new CanopyFuelIgnition({fuelBed: canopyFuelBed, ...params})
 
 // Get an array of all burnable fuel model keys
 const catalog = new FuelModelCatalog()
@@ -35,8 +41,10 @@ for(let i=0; i<1000; i++) {
         const fireVectorBeta = new FireVectorBeta({fireSize, ...params})
         const fireVectorBeta6 = new FireVectorBeta6({fireSize, ...params})
         const fireVectorPsi = new FireVectorPsi({fireSize, ...params})
+        const activeCrownFire = new ActiveCrownFireBehavior()
         data.push({fuelKey, fuelModel, fuelBed, fuelIgnition, fireBehavior, fireShape, fireSize,
-            fireVectorBack, fireVectorBeta, fireVectorBeta6, fireVectorHead, fireVectorPsi})
+            fireVectorBack, fireVectorBeta, fireVectorBeta6, fireVectorHead, fireVectorPsi,
+            activeCrownFire})
         n++
     }
 }
@@ -133,6 +141,45 @@ for(let i=0; i<data.length; i++) {
 }
 msec = fmt(performance.now() - t)
 results.push({name: 'FireVectorPsi.update()', n: data.length, msec})
+
+//-----------------------------------------------------------
+// ActiveCrownFire
+t = performance.now()
+const windSpeed20ft = 880
+const surfaceFuelHpua = 1000    // fireBehavior10.heatPerUnitArea
+
+// Determine canopy fuel load from canopyBulkDensity and canopyLength
+let {canopyHeight, canopyBase, canopyBulkDensity, canopyFuelHeat} = params
+const canopyLength = canopyHeight - canopyBase
+const canopyFuelLoad = calcCanopyFuelLoad({canopyLength, canopyBulkDensity})
+
+// Determine canopy fuel HPUA from canopyFuelLoad and canopyFuelHpua
+const canopyFuelHpua = calcCanopyFuelHpua({canopyFuelLoad, canopyFuelHeat})
+for(let i=0; i<data.length; i++) {
+    data[i].activeCrownFire.update({canopyFuelIgnition, windSpeed20ft, canopyFuelHpua, surfaceFuelHpua})
+}
+msec = fmt(performance.now() - t)
+results.push({name: 'ActiveCrownFireBehavior.update()', n: data.length, msec})
+
+//-----------------------------------------------------------
+// 
+t = performance.now()
+for(let i=0; i<data.length; i++) {
+    for(let canopyBase=10; canopyBase<100; canopyBase+=10) {
+        for(let canopyLength=10; canopyLength<=100; canopyLength+=10) {
+            canopyHeight = canopyBase + canopyLength
+            for (let canopyCover=0.1; canopyCover<=1; canopyCover+=0.1) {
+                // eslint-disable-next-line no-unused-vars
+                const canopyWsrf = calcCanopyMidflameWsrf({canopyBase, canopyHeight, canopyCover})
+            }
+        }
+    }
+    // const fuelBedWsrf = data[i].fuelBed.midflameWsrf
+    // const wsrf = Math.min(canopyWsrf, fuelBedWsrf)
+    // const midflameWindSpeed = windSpeed20ft * wsrf
+}
+msec = fmt(performance.now() - t)
+results.push({name: 'calcCanopyMidflameWsrf()', n: data.length, msec})
 
 //---------------------------------------------------------------
 // Results

@@ -8,6 +8,6 @@ export { FireVectorBack, FireVectorBeta, FireVectorBetaAtLeftFlank, FireVectorBe
 export { FuelBed } from './FuelBed.js'
 export { FuelIgnition } from './FuelIgnition.js'
 export { FuelModelCatalog } from './FuelModelCatalog.js'
-export { CanopyFuelBed, CanopyFuelIgnition, ActiveCrownFireBehavior } from './ActiveCrownFire.js'
+export { CanopyFuelBed, CanopyFuelIgnition, ActiveCrownFireBehavior } from './ActiveCrownFireBehavior.js'
 export { calcCanopyMidflameWsrf, calcFuelBedMidflameWsrf } from './calcMidflameWsrf.js'
 export { calcCanopyFuelHpua, calcCanopyFuelLoad} from './calcParams.js'

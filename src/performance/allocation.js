@@ -1,5 +1,7 @@
 import { FuelModelCatalog, FuelBed, FuelIgnition, FireBehavior, FireShape, FireSize } from '#lib/index.js'
 import { FireVectorBack, FireVectorBeta, FireVectorBeta6, FireVectorHead, FireVectorPsi } from '#lib/index.js'
+import { CanopyFuelBed, CanopyFuelIgnition, ActiveCrownFireBehavior } from '#lib/ActiveCrownFireBehavior.js'
+import { calcCanopyFuelLoad, calcCanopyFuelHpua } from '#lib/index.js'
 import { ParamsBp6 } from '../use-cases/Params.js'
 
 export function fmt(v, dec=2) {
@@ -9,6 +11,10 @@ export function fmt(v, dec=2) {
 
 const params = {...ParamsBp6}
 const results = []
+
+// There should only ever be 1 of these instances, so no need to test
+const canopyFuelBed = new CanopyFuelBed()
+const canopyFuelIgnition = new CanopyFuelIgnition({fuelBed: canopyFuelBed, ...params})
 
 // Get an array of all burnable fuel model keys
 const catalog = new FuelModelCatalog()
@@ -143,6 +149,30 @@ for(let i=0; i<data.length; i++) {
 }
 msec = fmt(performance.now() - t)
 results.push({name: 'new FireVectorPsi()', n: data.length, msec})
+
+//-----------------------------------------------------------
+// ActiveCrownFire
+t = performance.now()
+const windSpeed20ft = 880
+const surfaceFuelHpua = 1000    // fireBehavior10.heatPerUnitArea
+
+// Determine canopy fuel load from canopyBulkDensity and canopyLength
+const canopyHeight = 40
+const canopyBase = 6
+const canopyLength = canopyHeight - canopyBase
+const canopyBulkDensity = 0.02
+const canopyFuelLoad = calcCanopyFuelLoad({canopyLength, canopyBulkDensity})
+
+// Determine canopy fuel HPUA from canopyFuelLoad and canopyFuelHpua
+const canopyFuelHeat = 8000
+const canopyFuelHpua = calcCanopyFuelHpua({canopyFuelLoad, canopyFuelHeat})
+for(let i=0; i<data.length; i++) {
+    params.fireSize = data[i].fireSize
+    data[i].activeCrownFire = new ActiveCrownFireBehavior(
+        {canopyFuelIgnition, windSpeed20ft, canopyFuelHpua, surfaceFuelHpua})
+}
+msec = fmt(performance.now() - t)
+results.push({name: 'new ActiveCrownFireBehavior()', n: data.length, msec})
 
 //---------------------------------------------------------------
 // Results

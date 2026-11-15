@@ -32,6 +32,8 @@ export const ParamsBp6 = {
     canopyBase: 10,
     canopyHeight: 100,
     canopyCover: 0.75,
+    canopyBulkDensity: 0.02,
+    canopyFuelHeat: 8000,
 }
 
 // Params used for testing against BehavePlus 5 and 6
@@ -68,4 +70,6 @@ export const ParamsZero = {
     canopyBase: 0,
     canopyHeight: 0,
     canopyCover: 0,
+    canopyBulkDensity: 0,
+    canopyFuelHeat: 8000,
 }

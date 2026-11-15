@@ -42,7 +42,6 @@ export class ActiveCrownFireBehavior {
     }
 
     checkParams(params) {
-        console.log('checkParams', params)
         for(let prop of ['canopyFuelIgnition', 'windSpeed20ft', 'canopyFuelHpua', 'surfaceFuelHpua']) {
             if (! Object.hasOwn(params, prop))
                 throw new Error(`ActiveCrownFireBehavior.update(params) requires a 'params.${prop}' property`)

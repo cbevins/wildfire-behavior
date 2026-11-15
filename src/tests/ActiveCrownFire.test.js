@@ -1,5 +1,5 @@
 import { FuelModelCatalog, FuelBed, FuelIgnition, FireBehavior,calcCanopyFuelLoad, calcCanopyFuelHpua } from '#lib/index.js'
-import { CanopyFuelBed, CanopyFuelIgnition, ActiveCrownFireBehavior } from '#lib/ActiveCrownFire.js'
+import { CanopyFuelBed, CanopyFuelIgnition, ActiveCrownFireBehavior } from '#lib/ActiveCrownFireBehavior.js'
 import * as Bp from './Bp6Inputs.js'
 
 import { describe, it, expect } from 'vitest'
