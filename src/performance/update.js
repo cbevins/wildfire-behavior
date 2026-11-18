@@ -19,18 +19,19 @@ const canopyFuelIgnition = new CanopyFuelIgnition({fuelBed: canopyFuelBed, ...pa
 // Get an array of all burnable fuel model keys
 const catalog = new FuelModelCatalog()
 const fuelKeys = []
-const burnables = false
-if (burnables) {
+const keys = 'all'  // all, burnable, nonburnable
+if (keys === 'all') {
+    for (let fuelKey of catalog.getNumberKeys()) fuelKeys.push(fuelKey)
+} else if (keys === 'burnable') {
     for (let fuelKey of catalog.getNumberKeys()) {
-        if (!catalog.isBurnable(fuelKey)) fuelKeys.push(fuelKey)
+        if (catalog.isBurnable(fuelKey)) fuelKeys.push(fuelKey)
     }
-    console.log(`update() performance for ${fuelKeys.length} BURNABLE fuel models:`)
 } else {
     for (let fuelKey of catalog.getNumberKeys()) {
         if (!catalog.isBurnable(fuelKey)) fuelKeys.push(fuelKey)
     }
-    console.log(`update() performance for ${fuelKeys.length} UNBURNABLE fuel models:`)
 }
+console.log(`update() performance for ${keys} fuel modls (${fuelKeys.length}):`)
 // Create empty data structure
 let t = performance.now()
 const data = []
@@ -163,6 +164,7 @@ const canopyFuelLoad = calcCanopyFuelLoad({canopyLength, canopyBulkDensity})
 
 // Determine canopy fuel HPUA from canopyFuelLoad and canopyFuelHpua
 const canopyFuelHpua = calcCanopyFuelHpua({canopyFuelLoad, canopyFuelHeat})
+// t = performance.now()
 for(let i=0; i<data.length; i++) {
     data[i].activeCrownFire.update({canopyFuelIgnition, windSpeed20ft, canopyFuelHpua, surfaceFuelHpua})
 }
@@ -170,7 +172,7 @@ msec = fmt(performance.now() - t)
 results.push({name: 'ActiveCrownFireBehavior.update()', n: data.length, msec})
 
 //-----------------------------------------------------------
-// 
+// calcCanopyMidflameWsrf
 t = performance.now()
 for(let i=0; i<data.length; i++) {
     for(let canopyBase=10; canopyBase<100; canopyBase+=10) {

@@ -17,7 +17,7 @@ export class CanopyFuelIgnition extends FuelIgnition {
 }
 
 export const ActiveCrownFireBehaviorProps = [
-        {key: 'fireBehavior', type: 'FireBehavior', init: {}, desc: ''},
+        // {key: 'fireBehavior', type: 'FireBehavior', init: {}, desc: ''},
         {key: 'headingSpreadRate', type: 'fireRos', init: 0, desc: 'Active crown fire spread rate'},
         {key: 'heatPerUnitArea', type: 'fireHpua', init: 0, desc: 'Active crown fire sum of surface and crown fuel heats per unit area'},
         {key: 'firelineIntensity', type: 'fireFli', init: 0, desc: 'Active crown fire fireline intensity'},
@@ -66,6 +66,9 @@ export class ActiveCrownFireBehavior {
         // using wind speed at 20-ft and no slope:
         this.fireBehavior.update({...params, fuelIgnition: canopyFuelIgnition,
             midflameWindSpeed: windSpeed20ft, slopeRatio: 0, limitWindSpeedFactor: false})
+        if (this.fireBehavior.headingSpreadRate <= 0)
+            return this
+
         // Rothermel's crown fire spread rate (ft/min)
         this.headingSpreadRate = 3.34 * this.fireBehavior.headingSpreadRate
 
