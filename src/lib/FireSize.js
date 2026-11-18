@@ -69,6 +69,8 @@ export class FireSize {
         this.#init()
         // Get required inputs
         let {fireShape, elapsedTime=1, ignEast=0, ignNorth=0, ignX=0, ignY=0} = params
+        if (fireShape.headingSpreadRate <= 0)
+            return this
 
         // Distance (ft) between the *ignition point* and the fire ellipse head
         const headingDistance = fireShape.headingSpreadRate * elapsedTime

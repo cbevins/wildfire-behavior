@@ -63,7 +63,8 @@ export class FireShape {
     update(params) {
         // Get required fireBehavior input properties
         const {headingSpreadRate=0, headingFromNorth=0, lengthWidthRatio=1, flameLength=0} = params
-
+        if (headingSpreadRate <= 0)
+            return this
         // ellipse eccentricity [0..1] e = sqrt((a/b * a/b - 1) / (a/b))
         const lwr = lengthWidthRatio
         const eccentricity = Math.sqrt(lwr * lwr - 1) / lwr

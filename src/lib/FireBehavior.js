@@ -71,6 +71,8 @@ export class FireBehavior {
 
         // Get required fuelIgnition input properties
         let {fuelBed, noWindSpreadRate, reactionIntensity} = fuelIgnition
+        if (reactionIntensity <= 0 || noWindSpreadRate <= 0)
+            return this
 
         // Get required fuelBed input properties
         let {slopeK, windB, windI, windK, residenceTime} = fuelBed

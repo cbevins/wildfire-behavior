@@ -49,6 +49,8 @@ export class FuelIgnition {
         this.#init()
         const { fuelBed } = params
         this.fuelBed = fuelBed
+        if (fuelBed.ovendryLoad <= 0)
+            return this
         
         // Update life category moisture variables
         const cat = {dead: {}, live: {}}

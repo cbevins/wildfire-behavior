@@ -19,10 +19,18 @@ const canopyFuelIgnition = new CanopyFuelIgnition({fuelBed: canopyFuelBed, ...pa
 // Get an array of all burnable fuel model keys
 const catalog = new FuelModelCatalog()
 const fuelKeys = []
-for (let fuelKey of catalog.getNumberKeys()) {
-    if (catalog.isBurnable(fuelKey)) fuelKeys.push(fuelKey)
+const burnables = false
+if (burnables) {
+    for (let fuelKey of catalog.getNumberKeys()) {
+        if (!catalog.isBurnable(fuelKey)) fuelKeys.push(fuelKey)
+    }
+    console.log(`update() performance for ${fuelKeys.length} BURNABLE fuel models:`)
+} else {
+    for (let fuelKey of catalog.getNumberKeys()) {
+        if (!catalog.isBurnable(fuelKey)) fuelKeys.push(fuelKey)
+    }
+    console.log(`update() performance for ${fuelKeys.length} UNBURNABLE fuel models:`)
 }
-
 // Create empty data structure
 let t = performance.now()
 const data = []

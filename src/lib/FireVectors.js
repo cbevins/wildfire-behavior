@@ -70,6 +70,8 @@ export class FireVectorBeta extends FireVector {
         const {fireSize, betaFromHead=0, calcVectorFlameLength=true} = params
         const {headingFromNorth, eccentricity:e, headingSpreadRate, firelineIntensity, rotationDeg,
             elapsedTime, ignX, ignY, ignEast, ignNorth,} = fireSize
+        if (headingSpreadRate <= 0)
+            return this
 
         // betaRotation is the *counter-clockwise* rotation from fire heading
         const betaRotation = clockwiseFromHeadToRotation(betaFromHead)
@@ -107,6 +109,8 @@ export class FireVectorBeta6 extends FireVectorBeta {
     update(params) {
         super.update(params)
         const {fireSize, betaFromHead=0, calcVectorFlameLength=true} = params
+        if (fireSize.headingSpreadRate <= 0)
+            return this
 
        // betaRotation is the *counter-clockwise* rotation from fire heading
         const betaRotation = clockwiseFromHeadToRotation(betaFromHead)
@@ -131,6 +135,8 @@ export class FireVectorBetaAtLeftFlank extends FireVectorBeta {
     
     update(params) {
         const {fireSize} = params
+        if (fireSize.headingSpreadRate <= 0)
+            return this
         const betaFromHead = calcBetaFromTheta(fireSize, 270)
         return super.update({...params, betaFromHead})
     }
@@ -144,6 +150,8 @@ export class FireVectorBetaAtRightFlank extends FireVectorBeta {
     
     update(params) {
         const {fireSize} = params
+        if (fireSize.headingSpreadRate <= 0)
+            return this
         const betaFromHead = calcBetaFromTheta(fireSize, 90)
         return super.update({...params, betaFromHead})
     }
@@ -160,6 +168,8 @@ export class FireVectorPsi extends FireVector {
         
         // Get required fireSize (and fireShape) input properties
         const {fireSize, psiFromHead=0, calcVectorFlameLength=true} = params
+        if (fireSize.headingSpreadRate <= 0)
+            return this
 
         // Get required fireEllipse/fireSize/firePosition input properties from fireSize
         const {headingFromNorth, headingSpreadRate, firelineIntensity, rotationDeg,
