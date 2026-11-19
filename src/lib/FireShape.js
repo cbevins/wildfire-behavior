@@ -60,6 +60,8 @@ export class FireShape {
     }
 
     update(params) {
+        this.#init()
+
         // Get required fireBehavior input properties
         const {headingSpreadRate=0, headingFromNorth=0, lengthWidthRatio=1, flameLength=0} = params
         if (headingSpreadRate <= 0)
