@@ -89,7 +89,7 @@ export class ActiveCrownFireBehavior {
         const diff = Math.max(0, (windSpeed20ft - this.headingSpreadRate) / 60) // 'diff' must be in ft/s
         this.powerOfWind = 0.00106 * diff * diff * diff
 
-        this.powerRatio = (this.powerOfWind>0) ? (this.powerOfFire / this.powerOfWind) : 0
+        this.powerRatio = (this.powerOfWind>0) ? (this.powerOfFire / this.powerOfWind) : 1 + this.powerOfFire
         this.isPlumeDominated = this.powerRatio >= 1
         this.isWindDriven = this.powerRatio < 1
     }
