@@ -144,8 +144,8 @@ export function curableHerb(ovendryLoad, savr, heat=8000) {
  * @param {array} particles array of FuelParticle objects
  * @returns FuelModel object
  */
-export function model(number, code, label, source, desc, depth, deadMext, particles=[]) {
-    return {number, code, label, source, desc, depth, deadMext, particles}
+export function model(number, code, source, label, desc, depth, deadMext, particles=[]) {
+    return {number, code, source, label, desc, depth, deadMext, particles}
 }
 
 // ----------------------------------------------------------------------------
