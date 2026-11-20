@@ -13,7 +13,7 @@ import { FuelModelCatalog, FuelBed, FuelIgnition, FireBehavior, FireShape, FireS
 import { FireVectorBack, FireVectorBeta, FireVectorBeta6, FireVectorHead, FireVectorPsi } from '#lib'
 import { calcCanopyMidflameWsrf, calcCanopyFuelLoad, calcCanopyFuelHpua } from "#lib"
 import { CanopyFuelBed, CanopyFuelIgnition, ActiveCrownFireBehavior } from '#lib'
-import { SpottingSurfaceFire, SpottingBurningPile } from "#lib"
+import { SpottingSurfaceFire, SpottingBurningPile, spottingInMountains } from "#lib"
 
 //------------------------------------------------------------------------------
 // 1 - Create fuel models
@@ -151,6 +151,12 @@ const spotPile = new SpottingBurningPile({
     windSpeed20ft,                  // Wind speed at 20 ft (ft/min).
     flameHt: 10,                    // Burning pile flame height (ft)
 })
+const spotPileMtn = spottingInMountains({
+    flatDistance: spotPile.levelDistance, // Spotting distance over flat terrain (ft)
+    location: 'ridgeTop',       // 'midslopeWindward', 'valleyBottom', 'midslopeLeeward', or 'ridgeTop'
+    ridgeToValleyDist: 2*5280,  // Horizontal distance from ridge top to valley bottom (ft)
+    ridgeToValleyElev: 3000,    // Vertical distance from ridge top to valley bottom (ft)
+})
 
 describe('User case simple1.js results same as BehavePlus v5 and v6', () => {
     it('FuelBed results', () => {
@@ -213,5 +219,6 @@ describe('User case simple1.js results same as BehavePlus v5 and v6', () => {
         expect(spotPile.firebrandHt).parts(122, ppm)  // BP6 value
         expect(spotPile.adjustedDownwindCoverHt).parts(50, ppb)
         expect(spotPile.levelDistance).parts(1135.180940, ppm)  // BP6 value
+        expect(spotPileMtn).parts(1596.088333, ppm)  // BP6 value
     })
 })

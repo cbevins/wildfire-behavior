@@ -10,7 +10,7 @@ import { FuelModelCatalog, FuelBed, FuelIgnition, FireBehavior, FireShape, FireS
 import { FireVectorBack, FireVectorBeta, FireVectorBeta6, FireVectorHead, FireVectorPsi } from '#lib'
 import { calcCanopyMidflameWsrf, calcCanopyFuelLoad, calcCanopyFuelHpua } from "#lib"
 import { CanopyFuelBed, CanopyFuelIgnition, ActiveCrownFireBehavior } from '#lib'
-import { SpottingSurfaceFire, SpottingBurningPile } from "#lib"
+import { SpottingSurfaceFire, SpottingBurningPile, spottingInMountains } from "#lib"
 
 import { fmt } from './utils.js'
 
@@ -199,10 +199,16 @@ const spotPile = new SpottingBurningPile({
     windSpeed20ft,                  // Wind speed at 20 ft (ft/min).
     flameHt: 10,                    // Burning pile flame height (ft)
 })
-
+const spotPileMtn = spottingInMountains({
+    flatDistance: spotPile.levelDistance, // Spotting distance over flat terrain (ft)
+    location: 'ridgeTop',       // 'midslopeWindward', 'valleyBottom', 'midslopeLeeward', or 'ridgeTop'
+    ridgeToValleyDist: 2*5280,  // Horizontal distance from ridge top to valley bottom (ft)
+    ridgeToValleyElev: 3000,    // Vertical distance from ridge top to valley bottom (ft)
+})
 
 log('Burning pile firebrand height', spotPile.firebrandHt, 'ft')
-log('Burning pile spotting distance', spotPile.levelDistance, 'ft')
+log('Burning pile level spotting distance', spotPile.levelDistance, 'ft')
+log('Burning pile mtn spotting distance', spotPileMtn, 'ft')
 
 const stop = performance.now()
 console.log('\nFire Behavior Results')
