@@ -38,3 +38,18 @@ export function calcFuelBedMidflameWsrf(depth) {
     const wsrf = 1.83 / Math.log((20 + 0.36 * f) / (0.13 * f))
     return wsrf
 }
+
+export function calcMidflameWsrf(params) {
+    const canopyWsrf = calcCanopyMidflameWsrf(params)
+
+    const {fuelBed=null, depth=null} = params
+    let fuelBedWsrf = 1
+    if (fuelBed) {
+        fuelBedWsrf = fuelBed.midflameWsrf
+    } else if (depth)  {
+        fuelBedWsrf = calcFuelBedMidflameWsrf(depth)
+    }
+
+    // BehavePlus applies the lesser of the two factors (i.e., the one with the greatest reduction)
+    return Math.min(canopyWsrf, fuelBedWsrf)
+}

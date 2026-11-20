@@ -64,7 +64,7 @@ export class SpottingDistance {
     }
 }
 
-export function spottingInMountains(params) {
+export function spottingTopography(params) {
     const {
         flatDistance,       // Spotting distance over flat terrain (ft)
         location=null,      // 'midslopeWindward', 'valleyBottom', 'midslopeLeeward', or 'ridgeTop'
