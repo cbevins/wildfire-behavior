@@ -17,14 +17,11 @@ export const SpotSourceLocations = {
 }
 
 export class SpottingDistance {
-    constructor(params=null) {
-        if (params)
-            this.update(params)
-        else
-            this.#init()
+    constructor() {
+        this.init()
     }
     
-    #init() {
+    init() {
         for(let {key, init} of SpottingDistanceProps) {
             this[key] = init
         }
@@ -33,7 +30,7 @@ export class SpottingDistance {
     updateLevelDistance(params) {
         const {downwindCoverHt=0, downwindOpenCanopy=0, windSpeed20ft=0} = params
         // Minimum valid cover ht used in calculation of flat terrain spotting distance
-        this.criticalHt = (this.firebrandHt > 0) ? (2.2 * this.firebrandHt**0.337 - 4.0) : 0
+        this.criticalHt = (this.firebrandHt > 0) ? (2.2 * (this.firebrandHt**0.337) - 4.0) : 0
 
         // Adjust downwind canopy height based upon downwind canopy cover
         // Added in Release6 by Issues #028FAH - Downwind Canopy Open/Closed
@@ -57,12 +54,11 @@ export class SpottingDistance {
      */
     calcFlatDistance(firebrandHt, coverHt, windSpeed20ft) {
         let distance = 0
-        // This model uses wind speed in mi/h, not in ft/min
-        const mph = windSpeed20ft / 88
         if (coverHt > 0 && firebrandHt > 0) {
-            const ratio = firebrandHt/coverHt
-            distance = 0.000718 * mph * Math.sqrt(coverHt)
-                * ((0.362 + Math.sqrt(ratio) / 2) * Math.log(ratio))
+            const mph = windSpeed20ft / 88
+            distance = 0.000718 * mph * Math.sqrt( coverHt )
+                 * (0.362 + Math.sqrt( firebrandHt / coverHt ) / 2.
+                 * Math.log( firebrandHt / coverHt ) );
         }
         return distance * 5280
     }

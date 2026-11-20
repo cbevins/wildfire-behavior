@@ -10,6 +10,7 @@ import { FuelModelCatalog, FuelBed, FuelIgnition, FireBehavior, FireShape, FireS
 import { FireVectorBack, FireVectorBeta, FireVectorBeta6, FireVectorHead, FireVectorPsi } from '#lib'
 import { calcCanopyMidflameWsrf, calcCanopyFuelLoad, calcCanopyFuelHpua } from "#lib"
 import { CanopyFuelBed, CanopyFuelIgnition, ActiveCrownFireBehavior } from '#lib'
+import { SpottingSurfaceFire, SpottingBurningPile } from "#lib"
 
 import { fmt } from './utils.js'
 
@@ -42,7 +43,8 @@ log('Fuel Model Label', fuelModel.label, 'string')
 // 3 - Create a FuelBed structure using "gs4" fuels with 50 percent herb curing:
 const fuelBed = new FuelBed({
     fuelModel,          // FuelModel reference from previous step
-    curedHerb: 0.5})    // Cured herbaceous fuel fraction  
+    curedHerb: 0.5,    // Cured herbaceous fuel fraction  
+})
 
 log('Fuel Bed Surf Area/Vol', fuelBed.savr, 'ft2/ft3')
 
@@ -55,7 +57,8 @@ const fuelIgnition = new FuelIgnition({
     moistureDead10h: 0.07,  // dead 10-h fuel moisture content (fraction)
     moistureDead100h: 0.09, // dead 100-h fuel moisture content (fraction)
     moistureLiveHerb: 0.5,  // live herbaceous fuel moisture content (fraction)
-    moistureLiveStem: 1.5}) // live stem wood fuel moisture content (fraction)
+    moistureLiveStem: 1.5, // live stem wood fuel moisture content (fraction)
+})
 
 log('No-wind Spread Rate', fuelIgnition.noWindSpreadRate, 'ft/min')
 
@@ -68,14 +71,15 @@ const canopyFuelIgnition = new CanopyFuelIgnition({
     moistureDead10h: 0.07,  // dead 10-h fuel moisture content (fraction)
     moistureDead100h: 0.09, // dead 100-h fuel moisture content (fraction)
     moistureLiveHerb: 0.5,  // live herbaceous fuel moisture content (fraction)
-    moistureLiveStem: 1.5}) // live stem wood fuel moisture content (fraction)
+    moistureLiveStem: 1.5, // live stem wood fuel moisture content (fraction)
+})
 
 //------------------------------------------------------------------------------
 // 5 - The FireBehavior module requires the wind speed *at midflame height*.
 // In the absence of field observations, midflame wind speed can be estimated
 // from the 20-ft wind speed using a reduction factor. If there is no canopy
 // above the fuel bed, the reduction factor is a property of the fuel beb depth:
-const windSpeed20ft = 20*88 // 20 mph in ft/min
+const windSpeed20ft = 40*88 // 20 mph in ft/min
 const fuelBedWsrf = fuelBed.midflameWsrf
 // If there is a canopy above the fuel, it can be estimated from canopy properties:
 const canopyBase = 10       // canopy base height (ft)
@@ -101,7 +105,8 @@ const fireBehavior = new FireBehavior({
     slopeRatio: 0.25,           // slope rise/reach ratio (0.25 = 14.03624347 degrees)
     aspect: 180,                // slope aspect (down slope direction) (compass degrees clockwise from noth)
     limitWindSpeedFactor: true, // limit effective wind speed by fire intensity (advanced use only; omit or leave as true)
-    limitSpreadRateToWindSpeed: true})   // limit spread rate to wind speed (advanced use only; omit or leave as true)
+    limitSpreadRateToWindSpeed: true,   // limit spread rate to wind speed (advanced use only; omit or leave as true)
+})
 
 log('Heading Spread Rate', fireBehavior.headingSpreadRate, 'ft/min')
 log('Heading Direction', fireBehavior.headingFromNorth, 'Deg from North')
@@ -125,7 +130,8 @@ const crownFire = new ActiveCrownFireBehavior({
     canopyFuelIgnition, // CanopyFuelIgnition reference from step 4b
     windSpeed20ft,      // wind speed at 20-ft (ft/min)
     canopyFuelHpua,     // canopy fuel heat per unit area (Btu/ft2)
-    surfaceFuelHpua: fireBehavior.heatPerUnitArea})
+    surfaceFuelHpua: fireBehavior.heatPerUnitArea,  // Btu/ft2
+})
 
 log('Crown Fire Spread Rate', crownFire.headingSpreadRate, 'ft/min')
 log('Crown Fire Flame Length', crownFire.flameLength, 'ft')
@@ -138,7 +144,7 @@ const fireShape = new FireShape({
     headingSpreadRate,          // maximum fire spread rate (ft/min),
     headingFromNorth,           // fire direction of maximum spread (degrees clockwise from north)
     flameLength,                // flame length at fire head (ft)
-    lengthWidthRatio            // fire ellipse length-to-width ratio
+    lengthWidthRatio,           // fire ellipse length-to-width ratio
 })
 
 log('Backing Spread Rate', fireShape.backingSpreadRate, 'ft/min')
@@ -148,7 +154,8 @@ const fireSize = new FireSize({
     fireShape,          // FireShape reference from the above statement
     elapsedTime: 60,    // time since ignition (min)
     ignEast: 0,         // ignition point easting (x-coordinate)
-    ignNorth: 0})       // ignition point northing (y-coordinate)
+    ignNorth: 0,       // ignition point northing (y-coordinate)
+})
 
 log('Fire Area', fireSize.area, 'ft2')
 log('Fire Perimeter', fireSize.perimeter, 'ft')
@@ -173,6 +180,29 @@ logVector('Beta (v6) at 45-deg', beta6)
 // from a *fire front* at some angle clockwise (psi) from the wind bearing (fire heading):
 const psi = new FireVectorPsi({fireSize, psiFromHead: 45})
 logVector('Psi at 45-deg from wind', psi)
+
+// 12 - SUrface fire spotting distance
+const spotSurface = new SpottingSurfaceFire({
+    downwindCoverHt: canopyHeight,  // Downwind tree/vegetation cover height (ft).
+    downwindOpenCanopy: false,      // TRUE if downwind canopy is open, FALSE if downwind canopy is closed
+    windSpeed20ft,                  // Wind speed at 20 ft (ft/min).
+    flameLength: fireBehavior.flameLength // Surface fire flame length (ft)
+})
+
+log('Surface firebrand height', spotSurface.firebrandHt, 'ft')
+log('Surface spotting distance', spotSurface.levelDistance, 'ft')
+
+// 13 - Spotting distance from an burning pile
+const spotPile = new SpottingBurningPile({
+    downwindCoverHt: canopyHeight,  // Downwind tree/vegetation cover height (ft).
+    downwindOpenCanopy: false,      // TRUE if downwind canopy is open, FALSE if downwind canopy is closed
+    windSpeed20ft,                  // Wind speed at 20 ft (ft/min).
+    flameHt: 10,                    // Burning pile flame height (ft)
+})
+
+
+log('Burning pile firebrand height', spotPile.firebrandHt, 'ft')
+log('Burning pile spotting distance', spotPile.levelDistance, 'ft')
 
 const stop = performance.now()
 console.log('\nFire Behavior Results')

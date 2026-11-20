@@ -77,7 +77,7 @@ export class ActiveCrownFireBehavior {
         this.heatPerUnitArea = surfaceFuelHpua + canopyFuelHpua
 
         // Crown fire fireline intensity (Btu/ft/s)
-        this.firelineIntensity = this.heatPerUnitArea * (this.headingSpreadRate / 60)
+        this.firelineIntensity = this.heatPerUnitArea * this.headingSpreadRate / 60
 
         // Crown fire flame length using Thomas (1963)
         this.flameLength = (this.firelineIntensity > 0 ) ? 0.2 * this.firelineIntensity**(2/3) : 0

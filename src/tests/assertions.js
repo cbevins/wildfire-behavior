@@ -2,6 +2,7 @@
 export const ppb = 1.0e-9  // parts per billion
 export const ppm = 1.0e-6  // parts per million
 export const ppt = 1.0e-3  // parts per thousand
+export const pph = 1.0e-2  // parts per hundred
 
 // Assert the difference of two numbers is with a certain ratio limit
 // For example, if sigma = 1.0e-92, the limit is 1 part per billion

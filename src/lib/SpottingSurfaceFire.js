@@ -4,6 +4,7 @@ import { SpottingDistance } from "./SpottingDistance.js"
 export class SpottingSurfaceFire extends SpottingDistance {
     constructor(params) {
         super(params)
+        this.update(params)
     }
 
     /**
@@ -26,7 +27,7 @@ export class SpottingSurfaceFire extends SpottingDistance {
             const f = 322 * (0.474 * mph)**-1.01
 
             // Byram's fireline intensity is derived back from flame length
-            const byrams = (this.flameLength/0.45)**(1/0.46)
+            const byrams = (flameLength / 0.45)**(1 / 0.46)
 
             // Initial firebrand height (ft)
             this.firebrandHt = ((f * byrams) > 0) ? (1.055 * Math.sqrt(f * byrams)) : 0

@@ -52,6 +52,7 @@ const TorchB = [
 export class SpottingTorchingTrees extends SpottingDistance {
     constructor(params) {
         super(params)
+        this.update(params)
     }
     
     /**

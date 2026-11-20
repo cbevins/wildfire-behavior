@@ -4,6 +4,7 @@ import { SpottingDistance } from "./SpottingDistance.js"
 export class SpottingBurningPile extends SpottingDistance {
     constructor(params) {
         super(params)
+        this.update(params)
     }
     
     /**
