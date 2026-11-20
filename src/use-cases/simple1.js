@@ -14,7 +14,7 @@ import { SpottingSurfaceFire, SpottingBurningPile, spottingTopography } from "#l
 
 import { fmt } from './utils.js'
 
-// Utility functions for reporting outputs
+// Result tables
 const results = []
 const vectors = []
 
@@ -204,6 +204,7 @@ logVector('Beta (v6) at 45-deg', beta6)
 // 9.3 - Fire vector from a *fire front* at some angle clockwise (psi)
 // from the wind bearing (or the fire ellipse heading):
 const psi = new FireVectorPsi({fireSize, psiFromHead: 45})
+
 logVector('Psi at 45-deg from wind', psi)
 
 //------------------------------------------------------------------------------
@@ -248,7 +249,7 @@ const spotPileTopo = spottingTopography({
     ridgeToValleyElev: 3000,    // Vertical distance from ridge top to valley bottom (ft)
 })
 
-log('Burning pile mtn spotting distance', spotPileTopo, 'ft')
+log('Burning pile spotting over topography', spotPileTopo, 'ft')
 
 const stop = performance.now()
 console.log('\nFire Behavior Results')

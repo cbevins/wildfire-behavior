@@ -6,8 +6,6 @@
  * code cited above and my own 'dist2a.for' derivative (which is also the basis of the
  * C++ version in BehavePlus V6).
  */
-import {getSpotDistanceMountainTerrain } from './SpotDistance.js'
-
 export class SpotDistanceActiveCrownFire {
     constructor() {
         this.init()
